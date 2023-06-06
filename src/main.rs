@@ -6,10 +6,10 @@ struct State {
     player: bool,
 }
 fn terminal(state: State) -> i8 {
-    return false;
+    return 0;
 }
 fn children(state: State) -> Vec<State> {
-    vec = Vec::new();
+    let vec: Vec<State> = Vec::new();
     return vec;
 }
 fn minimax(state: State, min: i8, max: i8) -> State {
@@ -70,7 +70,7 @@ fn main() {
         println!("W : uncrowned white checker");
         println!("X : crowned white checker");
         loop {
-            end = terminal(state);
+            let end: i8 = terminal(state);
             if end == 1 {
                 println!("Black won!");
                 break;
@@ -83,7 +83,7 @@ fn main() {
         }
         println!("Enter 0 to play again or 1 to quit");
         let mut inp = String::new();
-        io.stdin().read_line(&mut inp).expect("Failed to read input.");
+        io::stdin().read_line(&mut inp).expect("Failed to read input.");
         let inp: u8 = inp.trim().parse().expect("Not a number!");
         if inp == 1 {
             println!("You have quit the game.");
