@@ -2,25 +2,89 @@ use std::io;
 use rand::Rng;
 
 struct State {
-    board: [[char; 8] ; 8],
-    player: bool,
+    board: [[char; 8]; 8],
+    color: bool, //black = true. white = false
+    player: bool, //computer = true, user = false
 }
-fn terminal(state: State) -> i8 {
+fn terminal(state: &State) -> i8 {
+    let mut b: bool = false;
+    let mut w: bool = false;
+    for i in 0..8 {
+        for j in 0..8 {
+            if state.board[i][j] == 'B' || state.board[i][j] == 'C' {
+                b = true;
+            }
+            else if state.board[i][j] == 'W' || state.board[i][j] == 'X' {
+                w = true;
+            }
+        }
+    }
+    if !b {
+        return -1;
+    }
+    else if !w {
+        return 1;
+    }
     return 0;
 }
-fn children(state: State) -> Vec<State> {
-    let vec: Vec<State> = Vec::new();
+fn dfs_b(state: &State, row: i8, col: i8) -> Vec<State> {
+    let mut vec: Vec<State> = Vec::new();
+    if row < 1 {
+
+    }
     return vec;
 }
-fn minimax(state: State, min: i8, max: i8) -> State {
-    return state;
+fn dfs_c(state: &State, row: i8, col: i8) -> Vec<State> {
+    let mut vec: Vec<State> = Vec::new();
+    return vec;
+}
+fn dfs_w(state: &State, row: i8, col: i8) -> Vec<State> {
+    let mut vec: Vec<State> = Vec::new();
+    return vec;
+}
+fn dfs_x(state: &State, row: i8, col: i8) -> Vec<State> {
+    let mut vec: Vec<State> = Vec::new();
+    return vec;
+}
+fn children(state: &State, row: i8, col: i8) -> Vec<State> {
+    let mut vec: Vec<State> = Vec::new();
+    if state.color {
+        for i in 0..8 {
+            for j in 0..8 {
+                if state.board[i][j] == 'B' {
+                    if i > 1 {
+                        vec.append(&mut dfs_b(&state, i.try_into().unwrap(), j.try_into().unwrap()));
+                    }
+                }
+                else if state.board[i][j] == 'C' {
+
+                }
+            }
+        }
+    }
+    else {
+
+    }
+    return vec;
+}
+fn eval(state: State) -> f64 {
+    return 0.0;
+}
+fn minimax(state: &State, min: f64, max: f64) -> State {
+    let s = State {
+        board: [['_' as char; 8] ; 8],
+        color: true,
+        player: true,
+    };
+    return s;
 }
 fn main() {
     loop {
         println!("Hello! Please enter 1 or 2 to determine which color you will play, or enter 0 for a link to the rules.");
         let mut state = State {
             board: [['_' as char; 8] ; 8],
-            player: true, //true for black, false for white
+            color: true,
+            player: true,
         };
         loop {
             let mut inp = String::new();
@@ -70,7 +134,7 @@ fn main() {
         println!("W : uncrowned white checker");
         println!("X : crowned white checker");
         loop {
-            let end: i8 = terminal(state);
+            let end: i8 = terminal(&state);
             if end == 1 {
                 println!("Black won!");
                 break;
@@ -81,7 +145,7 @@ fn main() {
             }
             break;
         }
-        println!("Enter 0 to play again or 1 to quit");
+        println!("Enter 0 to play again or 1 to quit.");
         let mut inp = String::new();
         io::stdin().read_line(&mut inp).expect("Failed to read input.");
         let inp: u8 = inp.trim().parse().expect("Not a number!");
