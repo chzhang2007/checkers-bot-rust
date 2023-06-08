@@ -1,6 +1,8 @@
 use std::io;
 use rand::Rng;
+use std::clone::Clone;
 
+#[derive(Clone)]
 struct State {
     board: [[char; 8]; 8],
     color: bool, //black = true. white = false
@@ -27,33 +29,164 @@ fn terminal(state: &State) -> i8 {
     }
     return 0;
 }
-fn dfs_b(state: &State, row: i8, col: i8) -> Vec<State> {
+fn dfs_b(state: &mut State, row: usize, col: usize) -> Vec<State> {
     let mut vec: Vec<State> = Vec::new();
+    let copy = (*state).clone();
+    vec.push(copy);
     if row < 1 {
-
+        return vec;
+    }
+    if col > 1 && (state.board[row - 1][col - 1] == 'W' || state.board[row - 1][col - 1] == 'X') && state.board[row - 2][col - 2] == '_' {
+        let piece: char = state.board[row - 1][col - 1];
+        state.board[row][col] = '_';
+        state.board[row - 1][col - 1] = '_';
+        state.board[row - 2][col - 2] = 'B';
+        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        state.board[row][col] = 'B';
+        state.board[row - 1][col - 1] = piece;
+        state.board[row - 2][col - 2] = '_';
+    }
+    if col < 6 && (state.board[row - 1][col + 1] == 'W' || state.board[row - 1][col + 1] == 'X') && state.board[row - 2][col + 2] == '_' {
+        let piece: char = state.board[row - 1][col + 1];
+        state.board[row][col] = '_';
+        state.board[row - 1][col + 1] = '_';
+        state.board[row - 2][col + 2] = 'B';
+        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        state.board[row][col] = 'B';
+        state.board[row - 1][col + 1] = piece;
+        state.board[row - 2][col + 2] = '_';
     }
     return vec;
 }
-fn dfs_c(state: &State, row: i8, col: i8) -> Vec<State> {
+fn dfs_c(state: &mut State, row: usize, col: usize) -> Vec<State> {
     let mut vec: Vec<State> = Vec::new();
+    let copy = (*state).clone();
+    vec.push(copy);
+    if col > 1 && (state.board[row - 1][col - 1] == 'W' || state.board[row - 1][col - 1] == 'X') && state.board[row - 2][col - 2] == '_' {
+        let piece: char = state.board[row - 1][col - 1];
+        state.board[row][col] = '_';
+        state.board[row - 1][col - 1] = '_';
+        state.board[row - 2][col - 2] = 'C';
+        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        state.board[row][col] = 'C';
+        state.board[row - 1][col - 1] = piece;
+        state.board[row - 2][col - 2] = '_';
+    }
+    if col < 6 && (state.board[row - 1][col + 1] == 'W' || state.board[row - 1][col + 1] == 'X') && state.board[row - 2][col + 2] == '_' {
+        let piece: char = state.board[row - 1][col + 1];
+        state.board[row][col] = '_';
+        state.board[row - 1][col + 1] = '_';
+        state.board[row - 2][col + 2] = 'C';
+        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        state.board[row][col] = 'C';
+        state.board[row - 1][col + 1] = piece;
+        state.board[row - 2][col + 2] = '_';
+    }
+    if col > 1 && (state.board[row + 1][col - 1] == 'W' || state.board[row + 1][col - 1] == 'X') && state.board[row + 2][col - 2] == '_' {
+        let piece: char = state.board[row + 1][col - 1];
+        state.board[row][col] = '_';
+        state.board[row + 1][col - 1] = '_';
+        state.board[row + 2][col - 2] = 'C';
+        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        state.board[row][col] = 'C';
+        state.board[row + 1][col - 1] = piece;
+        state.board[row + 2][col - 2] = '_';
+    }
+    if col < 6 && (state.board[row + 1][col + 1] == 'W' || state.board[row + 1][col + 1] == 'X') && state.board[row + 2][col + 2] == '_' {
+        let piece: char = state.board[row + 1][col + 1];
+        state.board[row][col] = '_';
+        state.board[row + 1][col + 1] = '_';
+        state.board[row + 2][col + 2] = 'C';
+        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        state.board[row][col] = 'C';
+        state.board[row + 1][col + 1] = piece;
+        state.board[row + 2][col + 2] = '_';
+    }
     return vec;
 }
-fn dfs_w(state: &State, row: i8, col: i8) -> Vec<State> {
+fn dfs_w(state: &mut State, row: usize, col: usize) -> Vec<State> {
     let mut vec: Vec<State> = Vec::new();
+    let copy = (*state).clone();
+    vec.push(copy);
+    if row > 6 {
+        return vec;
+    }
+    if col > 1 && (state.board[row + 1][col - 1] == 'B' || state.board[row + 1][col - 1] == 'C') && state.board[row + 2][col - 2] == '_' {
+        let piece: char = state.board[row + 1][col - 1];
+        state.board[row][col] = '_';
+        state.board[row + 1][col - 1] = '_';
+        state.board[row + 2][col - 2] = 'W';
+        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        state.board[row][col] = 'W';
+        state.board[row + 1][col - 1] = piece;
+        state.board[row + 2][col - 2] = '_';
+    }
+    if col < 6 && (state.board[row + 1][col + 1] == 'B' || state.board[row + 1][col + 1] == 'C') && state.board[row + 2][col + 2] == '_' {
+        let piece: char = state.board[row + 1][col + 1];
+        state.board[row][col] = '_';
+        state.board[row + 1][col + 1] = '_';
+        state.board[row + 2][col + 2] = 'W';
+        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        state.board[row][col] = 'W';
+        state.board[row + 1][col + 1] = piece;
+        state.board[row + 2][col + 2] = '_';
+    }
     return vec;
 }
-fn dfs_x(state: &State, row: i8, col: i8) -> Vec<State> {
+fn dfs_x(state: &mut State, row: usize, col: usize) -> Vec<State> {
     let mut vec: Vec<State> = Vec::new();
+    let copy = (*state).clone();
+    vec.push(copy);
+    if col > 1 && (state.board[row - 1][col - 1] == 'B' || state.board[row - 1][col - 1] == 'C') && state.board[row - 2][col - 2] == '_' {
+        let piece: char = state.board[row - 1][col - 1];
+        state.board[row][col] = '_';
+        state.board[row - 1][col - 1] = '_';
+        state.board[row - 2][col - 2] = 'X';
+        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        state.board[row][col] = 'X';
+        state.board[row - 1][col - 1] = piece;
+        state.board[row - 2][col - 2] = '_';
+    }
+    if col < 6 && (state.board[row - 1][col + 1] == 'B' || state.board[row - 1][col + 1] == 'C') && state.board[row - 2][col + 2] == '_' {
+        let piece: char = state.board[row - 1][col + 1];
+        state.board[row][col] = '_';
+        state.board[row - 1][col + 1] = '_';
+        state.board[row - 2][col + 2] = 'X';
+        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        state.board[row][col] = 'X';
+        state.board[row - 1][col + 1] = piece;
+        state.board[row - 2][col + 2] = '_';
+    }
+    if col > 1 && (state.board[row + 1][col - 1] == 'B' || state.board[row + 1][col - 1] == 'C') && state.board[row + 2][col - 2] == '_' {
+        let piece: char = state.board[row + 1][col - 1];
+        state.board[row][col] = '_';
+        state.board[row + 1][col - 1] = '_';
+        state.board[row + 2][col - 2] = 'X';
+        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        state.board[row][col] = 'X';
+        state.board[row + 1][col - 1] = piece;
+        state.board[row + 2][col - 2] = '_';
+    }
+    if col < 6 && (state.board[row + 1][col + 1] == 'B' || state.board[row + 1][col + 1] == 'C') && state.board[row + 2][col + 2] == '_' {
+        let piece: char = state.board[row + 1][col + 1];
+        state.board[row][col] = '_';
+        state.board[row + 1][col + 1] = '_';
+        state.board[row + 2][col + 2] = 'X';
+        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        state.board[row][col] = 'X';
+        state.board[row + 1][col + 1] = piece;
+        state.board[row + 2][col + 2] = '_';
+    }
     return vec;
 }
-fn children(state: &State, row: i8, col: i8) -> Vec<State> {
+fn children(state: &mut State, row: i8, col: i8) -> Vec<State> {
     let mut vec: Vec<State> = Vec::new();
     if state.color {
         for i in 0..8 {
             for j in 0..8 {
                 if state.board[i][j] == 'B' {
                     if i > 1 {
-                        vec.append(&mut dfs_b(&state, i.try_into().unwrap(), j.try_into().unwrap()));
+                        vec.append(&mut dfs_b(state, i, j));
                     }
                 }
                 else if state.board[i][j] == 'C' {
