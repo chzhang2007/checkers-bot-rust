@@ -8,7 +8,7 @@ struct State {
     color: bool, //black = true. white = false
     player: bool, //computer = true, user = false
 }
-fn terminal(state: &State) -> i8 {
+fn terminal(state: State) -> (i8, State) {
     let mut b: bool = false;
     let mut w: bool = false;
     for i in 0..8 {
@@ -22,26 +22,36 @@ fn terminal(state: &State) -> i8 {
         }
     }
     if !b {
-        return -1;
+        return (-1, state);
     }
     else if !w {
-        return 1;
+        return (1, state);
     }
-    return 0;
+    todo!("Add terminal if a player has no more moves");
+    return (0, state);
 }
-fn dfs_b(state: &mut State, row: usize, col: usize) -> Vec<State> {
+fn dfs_b(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usize) {
     let mut vec: Vec<State> = Vec::new();
-    let copy = (*state).clone();
+    let mut state: State = state;
+    let mut row: usize = row;
+    let mut col: usize = col;
+    let copy = state.clone();
     vec.push(copy);
     if row < 1 {
-        return vec;
+        return (vec, state, row, col);
     }
     if col > 1 && (state.board[row - 1][col - 1] == 'W' || state.board[row - 1][col - 1] == 'X') && state.board[row - 2][col - 2] == '_' {
         let piece: char = state.board[row - 1][col - 1];
         state.board[row][col] = '_';
         state.board[row - 1][col - 1] = '_';
         state.board[row - 2][col - 2] = 'B';
-        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_b(state, row - 2, col - 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 + 2;
+        col = tup.3 + 2;
         state.board[row][col] = 'B';
         state.board[row - 1][col - 1] = piece;
         state.board[row - 2][col - 2] = '_';
@@ -51,23 +61,39 @@ fn dfs_b(state: &mut State, row: usize, col: usize) -> Vec<State> {
         state.board[row][col] = '_';
         state.board[row - 1][col + 1] = '_';
         state.board[row - 2][col + 2] = 'B';
-        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_b(state, row - 2, col + 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 + 2;
+        col = tup.3 + 2;
         state.board[row][col] = 'B';
         state.board[row - 1][col + 1] = piece;
         state.board[row - 2][col + 2] = '_';
     }
-    return vec;
+    todo!("Return only final moves");
+    return (vec, state, row, col);
 }
-fn dfs_c(state: &mut State, row: usize, col: usize) -> Vec<State> {
+fn dfs_c(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usize) {
     let mut vec: Vec<State> = Vec::new();
-    let copy = (*state).clone();
+    let mut state: State = state;
+    let mut row: usize = row;
+    let mut col: usize = col;
+    let copy = state.clone();
     vec.push(copy);
     if col > 1 && (state.board[row - 1][col - 1] == 'W' || state.board[row - 1][col - 1] == 'X') && state.board[row - 2][col - 2] == '_' {
         let piece: char = state.board[row - 1][col - 1];
         state.board[row][col] = '_';
         state.board[row - 1][col - 1] = '_';
         state.board[row - 2][col - 2] = 'C';
-        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_c(state, row - 2, col - 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 + 2;
+        col = tup.3 + 2;
         state.board[row][col] = 'C';
         state.board[row - 1][col - 1] = piece;
         state.board[row - 2][col - 2] = '_';
@@ -77,7 +103,13 @@ fn dfs_c(state: &mut State, row: usize, col: usize) -> Vec<State> {
         state.board[row][col] = '_';
         state.board[row - 1][col + 1] = '_';
         state.board[row - 2][col + 2] = 'C';
-        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_c(state, row - 2, col + 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 + 2;
+        col = tup.3 - 2;
         state.board[row][col] = 'C';
         state.board[row - 1][col + 1] = piece;
         state.board[row - 2][col + 2] = '_';
@@ -87,7 +119,13 @@ fn dfs_c(state: &mut State, row: usize, col: usize) -> Vec<State> {
         state.board[row][col] = '_';
         state.board[row + 1][col - 1] = '_';
         state.board[row + 2][col - 2] = 'C';
-        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_c(state, row + 2, col - 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 - 2;
+        col = tup.3 + 2;
         state.board[row][col] = 'C';
         state.board[row + 1][col - 1] = piece;
         state.board[row + 2][col - 2] = '_';
@@ -97,26 +135,42 @@ fn dfs_c(state: &mut State, row: usize, col: usize) -> Vec<State> {
         state.board[row][col] = '_';
         state.board[row + 1][col + 1] = '_';
         state.board[row + 2][col + 2] = 'C';
-        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_c(state, row + 2, col + 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 - 2;
+        col = tup.3 - 2;
         state.board[row][col] = 'C';
         state.board[row + 1][col + 1] = piece;
         state.board[row + 2][col + 2] = '_';
     }
-    return vec;
+    todo!("Return only final moves");
+    return (vec, state, row, col);
 }
-fn dfs_w(state: &mut State, row: usize, col: usize) -> Vec<State> {
+fn dfs_w(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usize) {
     let mut vec: Vec<State> = Vec::new();
-    let copy = (*state).clone();
+    let mut state: State = state;
+    let mut row: usize = row;
+    let mut col: usize = col;
+    let copy = state.clone();
     vec.push(copy);
     if row > 6 {
-        return vec;
+        return (vec, state, row, col);
     }
     if col > 1 && (state.board[row + 1][col - 1] == 'B' || state.board[row + 1][col - 1] == 'C') && state.board[row + 2][col - 2] == '_' {
         let piece: char = state.board[row + 1][col - 1];
         state.board[row][col] = '_';
         state.board[row + 1][col - 1] = '_';
         state.board[row + 2][col - 2] = 'W';
-        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_w(state, row + 2, col - 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 - 2;
+        col = tup.3 + 2;
         state.board[row][col] = 'W';
         state.board[row + 1][col - 1] = piece;
         state.board[row + 2][col - 2] = '_';
@@ -126,23 +180,39 @@ fn dfs_w(state: &mut State, row: usize, col: usize) -> Vec<State> {
         state.board[row][col] = '_';
         state.board[row + 1][col + 1] = '_';
         state.board[row + 2][col + 2] = 'W';
-        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_w(state, row + 2, col + 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 - 2;
+        col = tup.3 - 2;
         state.board[row][col] = 'W';
         state.board[row + 1][col + 1] = piece;
         state.board[row + 2][col + 2] = '_';
     }
-    return vec;
+    todo!("Return only final moves");
+    return (vec, state, row, col);
 }
-fn dfs_x(state: &mut State, row: usize, col: usize) -> Vec<State> {
+fn dfs_x(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usize) {
     let mut vec: Vec<State> = Vec::new();
-    let copy = (*state).clone();
+    let mut state: State = state;
+    let mut row: usize = row;
+    let mut col: usize = col;
+    let copy = state.clone();
     vec.push(copy);
     if col > 1 && (state.board[row - 1][col - 1] == 'B' || state.board[row - 1][col - 1] == 'C') && state.board[row - 2][col - 2] == '_' {
         let piece: char = state.board[row - 1][col - 1];
         state.board[row][col] = '_';
         state.board[row - 1][col - 1] = '_';
         state.board[row - 2][col - 2] = 'X';
-        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_x(state, row - 2, col - 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 + 2;
+        col = tup.3 + 2;
         state.board[row][col] = 'X';
         state.board[row - 1][col - 1] = piece;
         state.board[row - 2][col - 2] = '_';
@@ -152,7 +222,13 @@ fn dfs_x(state: &mut State, row: usize, col: usize) -> Vec<State> {
         state.board[row][col] = '_';
         state.board[row - 1][col + 1] = '_';
         state.board[row - 2][col + 2] = 'X';
-        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_x(state, row - 2, col + 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 + 2;
+        col = tup.3 - 2;
         state.board[row][col] = 'X';
         state.board[row - 1][col + 1] = piece;
         state.board[row - 2][col + 2] = '_';
@@ -162,7 +238,13 @@ fn dfs_x(state: &mut State, row: usize, col: usize) -> Vec<State> {
         state.board[row][col] = '_';
         state.board[row + 1][col - 1] = '_';
         state.board[row + 2][col - 2] = 'X';
-        vec.append(&mut dfs_b(state, row - 2, col - 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_x(state, row + 2, col - 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 - 2;
+        col = tup.3 + 2;
         state.board[row][col] = 'X';
         state.board[row + 1][col - 1] = piece;
         state.board[row + 2][col - 2] = '_';
@@ -172,21 +254,35 @@ fn dfs_x(state: &mut State, row: usize, col: usize) -> Vec<State> {
         state.board[row][col] = '_';
         state.board[row + 1][col + 1] = '_';
         state.board[row + 2][col + 2] = 'X';
-        vec.append(&mut dfs_b(state, row + 2, col + 2));
+        let tup: (Vec<State>, State, usize, usize) = dfs_x(state, row + 2, col + 2);
+        for i in tup.0 {
+            vec.push(i);
+        }
+        state = tup.1;
+        row = tup.2 - 2;
+        col = tup.3 - 2;
         state.board[row][col] = 'X';
         state.board[row + 1][col + 1] = piece;
         state.board[row + 2][col + 2] = '_';
     }
-    return vec;
+    todo!("Return only final moves");
+    return (vec, state, row, col);
 }
-fn children(state: &mut State, row: i8, col: i8) -> Vec<State> {
+fn children(state: State, row: usize, col: usize) -> (Vec<State>, State) {
     let mut vec: Vec<State> = Vec::new();
+    let mut state: State = state;
+    let mut row: usize = row;
+    let mut col: usize = col;
     if state.color {
         for i in 0..8 {
             for j in 0..8 {
                 if state.board[i][j] == 'B' {
                     if i > 1 {
-                        vec.append(&mut dfs_b(state, i, j));
+                        let tup: (Vec<State>, State, usize, usize) = dfs_b(state, i, j);
+                        for i in tup.0 {
+                            vec.push(i);
+                        }
+                        state = tup.1;
                     }
                 }
                 else if state.board[i][j] == 'C' {
@@ -198,17 +294,20 @@ fn children(state: &mut State, row: i8, col: i8) -> Vec<State> {
     else {
 
     }
-    return vec;
+    todo!();
+    return (vec, state);
 }
 fn eval(state: State) -> f64 {
+    todo!();
     return 0.0;
 }
-fn minimax(state: &State, min: f64, max: f64) -> State {
+fn minimax(state: State, min: f64, max: f64) -> State {
     let s = State {
         board: [['_' as char; 8] ; 8],
         color: true,
         player: true,
     };
+    todo!();
     return s;
 }
 fn main() {
@@ -267,7 +366,9 @@ fn main() {
         println!("W : uncrowned white checker");
         println!("X : crowned white checker");
         loop {
-            let end: i8 = terminal(&state);
+            let tup: (i8, State) = terminal(state);
+            let end: i8 = tup.0;
+            state = tup.1;
             if end == 1 {
                 println!("Black won!");
                 break;
