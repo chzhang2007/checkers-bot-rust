@@ -310,45 +310,23 @@ fn minimax(state: State, min: f64, max: f64) -> State {
 }
 fn main() {
     loop {
-        println!("Hello! Please enter 0 for a link to the rules, or enter anything else to start playing!.");
-        let mut state = State {
-            board: [[None as Option<Piece>; 8] ; 8],
-            color: true,
-            player: true,
-        };
-        loop {
-            let mut inp = String::new();
-            io::stdin().read_line(&mut inp).expect("Failed to read input.");
-            let inp: u8 = inp.trim().parse().expect("Not a number!");
-            if inp == 0 {
-                println!("You can find the rules at https://www.wikihow.com/Play-Checkers.");
-            }
-            else {
-                let rnum: u8 = rand::thread_rng().gen_range(1..=2);
-                if rnum == 1 {
-                    println!("You are playing black.");
-                    state.player = false;
-                    break;
-                }
-                println!("You are playing white.");
-                break;
-            }
+        println!("Hello! Please enter 0 for a link to the rules, or enter anything else to start playing!");
+        let mut state = State::new();
+        let mut inp = String::new();
+        io::stdin().read_line(&mut inp).expect("Failed to read input.");
+        let inp: u8 = inp.trim().parse().expect("Not a number!");
+        if inp == 0 {
+            println!("You can find the rules at https://www.wikihow.com/Play-Checkers.");
         }
-        for row in 0..3 {
-            for col in 0..8 {
-                if col % 2 == 1 {
-                    state.set_board(row, col, Some(Piece::White(bool::from(false))));
-                }
-            }
+        let rnum: u8 = rand::thread_rng().gen_range(1..=2);
+        if rnum == 1 {
+            println!("You are playing black.");
+            state.player = false;
         }
-        for row in 5..8 {
-            for col in 0..8 {
-                if row % 2 == 0 {
-                    state.set_board(row, col, Some(Piece::Black(bool::from(false))));
-                }
-            }
+        else {
+            println!("You are playing white.");
         }
-        state.Display();
+        println!("{state}");
         println!("_ : empty space");
         println!("B : uncrowned black checker");
         println!("C: crowned black checker");
