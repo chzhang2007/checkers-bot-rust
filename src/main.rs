@@ -49,6 +49,7 @@ fn dfs_b(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::Black(bool::from(false))));
         state.set_board(row - 1, col - 1, piece);
         state.set_board(row - 2, col - 2, None);
+        vec.retain(|value| *value != state);
     }
     if col < 6 && (state.get_board(row - 1, col + 1) == Some(Piece::White(bool::from(false))) || state.get_board(row - 1, col + 1) == Some(Piece::White(bool::from(true)))) && state.get_board(row - 2, col + 2) == None {
         let piece: Option<Piece> = state.get_board(row - 1, col + 1);
@@ -65,8 +66,8 @@ fn dfs_b(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::Black(bool::from(false))));
         state.set_board(row - 1, col + 1, piece);
         state.set_board(row - 2, col + 2, None);
+        vec.retain(|value| *value != state);
     }
-    //todo!("Return only final moves");
     return (vec, state, row, col);
 }
 fn dfs_c(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usize) {
@@ -91,6 +92,7 @@ fn dfs_c(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::Black(bool::from(true))));
         state.set_board(row - 1, col - 1, piece);
         state.set_board(row - 2, col - 2, None);
+        vec.retain(|value| *value != state);
     }
     if col < 6 && (state.get_board(row - 1, col + 1) == Some(Piece::White(bool::from(false))) || state.get_board(row - 1, col + 1) == Some(Piece::White(bool::from(true)))) && state.get_board(row - 2, col + 2) == None {
         let piece: Option<Piece> = state.get_board(row - 1, col + 1);
@@ -107,6 +109,7 @@ fn dfs_c(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::Black(bool::from(true))));
         state.set_board(row - 1, col + 1, piece);
         state.set_board(row - 2, col + 2, None);
+        vec.retain(|value| *value != state);
     }
     if col > 1 && (state.get_board(row + 1, col - 1) == Some(Piece::White(bool::from(false))) || state.get_board(row + 1, col - 1) == Some(Piece::White(bool::from(true)))) && state.get_board(row + 2, col - 2) == None {
         let piece: Option<Piece> = state.get_board(row + 1, col - 1);
@@ -123,6 +126,7 @@ fn dfs_c(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::Black(bool::from(true))));
         state.set_board(row + 1, col - 1, piece);
         state.set_board(row + 2, col - 2, None);
+        vec.retain(|value| *value != state);
     }
     if col < 6 && (state.get_board(row + 1, col + 1) == Some(Piece::White(bool::from(false))) || state.get_board(row + 1, col + 1) == Some(Piece::White(bool::from(true)))) && state.get_board(row + 2, col + 2) == None {
         let piece: Option<Piece> = state.get_board(row + 1, col + 1);
@@ -139,8 +143,8 @@ fn dfs_c(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::Black(bool::from(true))));
         state.set_board(row + 1, col + 1, piece);
         state.set_board(row + 2, col + 2, None);
+        vec.retain(|value| *value != state);
     }
-    //todo!("Return only final moves");
     return (vec, state, row, col);
 }
 fn dfs_w(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usize) {
@@ -168,6 +172,7 @@ fn dfs_w(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::White(bool::from(false))));
         state.set_board(row + 1, col - 1, piece);
         state.set_board(row + 2, col - 2, None);
+        vec.retain(|value| *value != state);
     }
     if col < 6 && (state.get_board(row + 1, col + 1) == Some(Piece::Black(bool::from(false))) || state.get_board(row + 1, col + 1) == Some(Piece::Black(bool::from(true)))) && state.get_board(row + 2, col + 2) == None {
         let piece: Option<Piece> = state.get_board(row + 1, col + 1);
@@ -184,8 +189,8 @@ fn dfs_w(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::White(bool::from(false))));
         state.set_board(row + 1, col + 1, piece);
         state.set_board(row + 2, col + 2, None);
+        vec.retain(|value| *value != state);
     }
-    //todo!("Return only final moves");
     return (vec, state, row, col);
 }
 fn dfs_x(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usize) {
@@ -210,6 +215,7 @@ fn dfs_x(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::White(true)));
         state.set_board(row - 1, col - 1, piece);
         state.set_board(row - 2, col - 2, None);
+        vec.retain(|value| *value != state);
     }
     if col < 6 && (state.get_board(row - 1, col + 1) == Some(Piece::Black(bool::from(false))) || state.get_board(row - 1, col + 1) == Some(Piece::Black(bool::from(true)))) && state.get_board(row - 2, col + 2) == None {
         let piece: Option<Piece> = state.get_board(row - 1, col + 1);
@@ -226,6 +232,7 @@ fn dfs_x(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::White(bool::from(true))));
         state.set_board(row - 1, col + 1, piece);
         state.set_board(row - 2, col + 2, None);
+        vec.retain(|value| *value != state);
     }
     if col > 1 && (state.get_board(row + 1, col - 1) == Some(Piece::Black(bool::from(false))) || state.get_board(row + 1, col - 1) == Some(Piece::Black(bool::from(true)))) && state.get_board(row + 2, col - 2) == None {
         let piece: Option<Piece> = state.get_board(row + 1, col - 1);
@@ -242,6 +249,7 @@ fn dfs_x(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::White(bool::from(true))));
         state.set_board(row + 1, col - 1, piece);
         state.set_board(row + 2, col - 2, None);
+        vec.retain(|value| *value != state);
     }
     if col < 6 && (state.get_board(row + 1, col + 1) == Some(Piece::Black(bool::from(false))) || state.get_board(row + 1, col + 1) == Some(Piece::Black(bool::from(true)))) && state.get_board(row + 2, col + 2) == None {
         let piece: Option<Piece> = state.get_board(row + 1, col + 1);
@@ -258,8 +266,8 @@ fn dfs_x(state: State, row: usize, col: usize) -> (Vec<State>, State, usize, usi
         state.set_board(row, col, Some(Piece::White(bool::from(true))));
         state.set_board(row + 1, col + 1, piece);
         state.set_board(row + 2, col + 2, None);
+        vec.retain(|value| *value != state);
     }
-    //todo!("Return only final moves");
     return (vec, state, row, col);
 }
 fn children(state: State, row: usize, col: usize) -> (Vec<State>, State) {
@@ -267,32 +275,152 @@ fn children(state: State, row: usize, col: usize) -> (Vec<State>, State) {
     let mut state: State = state;
     let mut row: usize = row;
     let mut col: usize = col;
-    if state.color {
-        for row in 0..8 {
-            for col in 0..8 {
-                if state.get_board(row, col) == Some(Piece::Black(false)) {
-                    if row > 1 {
-                        let tup: (Vec<State>, State, usize, usize) = dfs_b(state, row, col);
-                        for val in tup.0 {
-                            vec.push(val);
-                        }
-                        state = tup.1;
-                    }
-                }
-                else if state.get_board(row, col) == Some(Piece::Black(true)) {
-                    let tup: (Vec<State>, State, usize, usize) = dfs_c(state, row, col);
+    for row in 0..8 {
+        for col in 0..8 {
+            if(state.color && state.get_board(row, col) == Some(Piece::Black(bool::from(false)))) {
+                if row > 1 {
+                    let tup: (Vec<State>, State, usize, usize) = dfs_b(state, row, col);
                     for val in tup.0 {
                         vec.push(val);
                     }
                     state = tup.1;
                 }
             }
+            else if(state.color && state.get_board(row, col) == Some(Piece::Black(bool::from(true)))) {
+                let tup: (Vec<State>, State, usize, usize) = dfs_c(state, row, col);
+                for val in tup.0 {
+                    vec.push(val);
+                }
+                state = tup.1;
+            }
+            else if(!state.color && state.get_board(row, col) == Some(Piece::White(bool::from(false)))) {
+                if row < 6 {
+                    let tup: (Vec<State>, State, usize, usize) = dfs_w(state, row, col);
+                    for val in tup.0 {
+                        vec.push(val);
+                    }
+                    state = tup.1;
+                }
+            }
+            else if(!state.color && state.get_board(row, col) == Some(Piece::Black(bool::from(false)))) {
+                let tup: (Vec<State>, State, usize, usize) = dfs_x(state, row, col);
+                for val in tup.0 {
+                    vec.push(val);
+                }
+                state = tup.1;
+            }
         }
     }
-    else {
-
+    if(vec.is_empty()) {
+        for row in 0..8 {
+            for col in 0..8 {
+                if(state.color && state.get_board(row, col) == Some(Piece::Black(bool::from(false)))) {
+                    if row > 0 {
+                        if(col > 0 && state.get_board(row - 1, col - 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row - 1, col - 1, Some(Piece::Black(bool::from(false))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::Black(bool::from(false))));
+                            state.set_board(row - 1, col - 1, None);
+                        }
+                        if(col < 7 && state.get_board(row - 1, col + 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row - 1, col + 1, Some(Piece::Black(bool::from(false))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::Black(bool::from(false))));
+                            state.set_board(row - 1, col + 1, None);
+                        }
+                    }
+                }
+                else if(state.color && state.get_board(row, col) == Some(Piece::Black(bool::from(true)))) {
+                    if row > 0 {
+                        if(col > 0 && state.get_board(row - 1, col - 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row - 1, col - 1, Some(Piece::Black(bool::from(true))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::Black(bool::from(true))));
+                            state.set_board(row - 1, col - 1, None);
+                        }
+                        if(col < 7 && state.get_board(row - 1, col + 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row - 1, col + 1, Some(Piece::Black(bool::from(true))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::Black(bool::from(true))));
+                            state.set_board(row - 1, col + 1, None);
+                        }
+                    }
+                    if row < 7 {
+                        if(col > 0 && state.get_board(row + 1, col - 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row + 1, col - 1, Some(Piece::Black(bool::from(true))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::Black(bool::from(true))));
+                            state.set_board(row + 1, col - 1, None);
+                        }
+                        if(col < 7 && state.get_board(row + 1, col + 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row + 1, col + 1, Some(Piece::Black(bool::from(true))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::Black(bool::from(true))));
+                            state.set_board(row + 1, col + 1, None);
+                        }  
+                    }
+                }
+                else if(!state.color && state.get_board(row, col) == Some(Piece::White(bool::from(false)))) {
+                    if row < 7 {
+                        if(col > 0 && state.get_board(row + 1, col - 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row + 1, col - 1, Some(Piece::White(bool::from(false))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::White(bool::from(false))));
+                            state.set_board(row + 1, col - 1, None);
+                        }
+                        if(col < 7 && state.get_board(row + 1, col + 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row + 1, col + 1, Some(Piece::White(bool::from(false))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::White(bool::from(false))));
+                            state.set_board(row + 1, col + 1, None);
+                        }
+                    }
+                }
+                else if(!state.color && state.get_board(row, col) == Some(Piece::White(bool::from(true)))) {
+                    if row > 0 {
+                        if(col > 0 && state.get_board(row - 1, col - 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row - 1, col - 1, Some(Piece::White(bool::from(true))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::White(bool::from(true))));
+                            state.set_board(row - 1, col - 1, None);
+                        }
+                        if(col < 7 && state.get_board(row - 1, col + 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row - 1, col + 1, Some(Piece::White(bool::from(true))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::White(bool::from(true))));
+                            state.set_board(row - 1, col + 1, None);
+                        }
+                    }
+                    if row < 7 {
+                        if(col > 0 && state.get_board(row + 1, col - 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row + 1, col - 1, Some(Piece::White(bool::from(true))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::White(bool::from(true))));
+                            state.set_board(row + 1, col - 1, None);
+                        }
+                        if(col < 7 && state.get_board(row + 1, col + 1) == None) {
+                            state.set_board(row, col, None);
+                            state.set_board(row + 1, col + 1, Some(Piece::White(bool::from(true))));
+                            vec.push(state);
+                            state.set_board(row, col, Some(Piece::White(bool::from(true))));
+                            state.set_board(row + 1, col + 1, None);
+                        }  
+                    }
+                }
+            }
+        }
     }
-    //todo!();
     return (vec, state);
 }
 fn eval(state: State) -> f64 {
@@ -310,7 +438,7 @@ fn minimax(state: State, min: f64, max: f64) -> State {
 }
 fn main() {
     loop {
-        println!("Hello! Please enter 0 for a link to the rules, or enter anything else to start playing!");
+        println!("Hello! Please enter 0 for a link to the rules, or enter any other number to start playing!");
         let mut state = State::new();
         let mut inp = String::new();
         io::stdin().read_line(&mut inp).expect("Failed to read input.");
