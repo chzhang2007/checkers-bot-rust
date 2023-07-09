@@ -34,6 +34,26 @@ impl State {
     pub fn get_board(&self, row: usize, col: usize) -> Option<Piece> {
         self.board[row][col]
     }
+    pub fn get_color(&self, row: usize, col: usize) -> Option<bool> {
+        let piece = self.get_board(row, col);
+        match piece {
+            Some(Piece::Black(false)) => Some(true),
+            Some(Piece::Black(true)) => Some(true),
+            Some(Piece::White(false)) => Some(false),
+            Some(Piece::White(true)) => Some(false),
+            None => None,
+        }
+    }
+    pub fn is_crowned(&self, row: usize, col: usize) -> Option<bool> {
+        let piece = self.get_board(row, col);
+        match piece {
+            Some(Piece::Black(false)) => Some(false),
+            Some(Piece::Black(true)) => Some(true),
+            Some(Piece::White(false)) => Some(false),
+            Some(Piece::White(true)) => Some(true),
+            None => None,
+        }
+    }
     pub fn set_board(&mut self, row: usize, col: usize, val: Option<Piece>) {
         self.board[row][col] = val;
     }
