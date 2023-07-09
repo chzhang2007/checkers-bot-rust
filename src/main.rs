@@ -348,13 +348,24 @@ fn children(state: State, row: usize, col: usize) -> (Vec<State>, State) {
     return (vec, state);
 }
 fn eval(state: State) -> f64 {
+    let mut score: i32 = 0;
     for row in 0..8 {
         for col in 0..8 {
             if state.color && state.get_color(row, col) == Some(true) {
-
+                if state.is_crowned(row, col) {
+                    score += 2 * (8 - row);
+                }
+                else {
+                    score += 8 - row;
+                }
             }
             else if !state.color && state.get_color(row, col) == Some(false) {
-
+                if state.is_crowned(row, col) {
+                    score += 2 * row;
+                }
+                else {
+                    score += row;
+                }
             }
         }
     }
