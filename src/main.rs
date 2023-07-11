@@ -348,23 +348,46 @@ fn children(state: State, row: usize, col: usize) -> (Vec<State>, State) {
     return (vec, state);
 }
 fn eval(state: State) -> f64 {
-    let mut score: i32 = 0;
+    let mut score: u32 = 0;
     for row in 0..8 {
         for col in 0..8 {
-            if state.color && state.get_color(row, col) == Some(true) {
-                if state.is_crowned(row, col) {
-                    score += 2 * (8 - row);
+            if state.get_color(row, col) == None {
+                continue;
+            }
+            if state.color {
+                if state.get_color(row, col) == Some(true) {
+                    if state.is_crowned(row, col) == Some(true) {
+                        score += 2 * (8 - (row as u32));
+                    }
+                    else {
+                        score += 8 - (row as u32);
+                    }
                 }
                 else {
-                    score += 8 - row;
+                    if state.is_crowned(row, col) == Some(true) {
+                        score -= 2 * (row as u32);
+                    }
+                    else {
+                        score -= row as u32;
+                    }                
                 }
             }
-            else if !state.color && state.get_color(row, col) == Some(false) {
-                if state.is_crowned(row, col) {
-                    score += 2 * row;
+            else if !state.color {
+                if state.get_color(row, col) == Some(false) {
+                    if state.is_crowned(row, col) == Some(true) {
+                        score += 2 * (row as u32);
+                    }
+                    else {
+                        score += row as u32;
+                    }
                 }
                 else {
-                    score += row;
+                    if state.is_crowned(row, col) == Some(true) {
+                        score += 2 * (8 - (row as u32));
+                    }
+                    else {
+                        score += 8 - (row as u32);
+                    }      
                 }
             }
         }
