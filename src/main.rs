@@ -389,6 +389,7 @@ fn main() {
         loop {
             if state.player {
                 //computer's turn
+                break;
             }
             else {
                 let mut row = String::new();
@@ -407,12 +408,41 @@ fn main() {
                         continue;
                     }
                     if state.get_color(row as usize, col as usize) != Some(state.color) {
-                        println!("The selected space does not contain one of your pieces.");
+                        println!("The selected space does not contain one of your pieces. Please select a different space.");
                         continue;
                     }
                     let vec = children(&state, &(row as usize), &(col as usize));
                     if vec.is_empty() {
-                        println!("The selected space does not have any legal moves.");
+                        println!("The selected space does not have any legal moves. Please select a different space.");
+                        continue;
+                    }
+                    let dx: [i8; 4] = [-1, -1, 1, 1];
+                    let dy: [i8; 4] = [-1, 1, -1, 1];
+                    let mut legal = false;
+                    for dir in 0..4 {
+                        let newR = row as i8 + dx[dir as usize];
+                        let newC = col as i8 + dy[dir as usize];
+                        if newR >= 0 && newR < 8 && newC >= 0 && newC < 8 {
+                            let newR = newR as u8;
+                            let newC = newC as u8;
+                            if state.get_board(newR as usize, newC as usize) == None {
+                                legal = true;
+                                break;
+                            }
+                        }
+                        let destR = row as i8 + 2 * dx[dir as usize];
+                        let destC = col as i8 + 2 * dy[dir as usize];
+                        if destR >= 0 && destR < 8 && destC >= 0 && destC < 8 {
+                            let destR = destR as u8;
+                            let destC = destC as u8;
+                            if ((state.get_color(row as usize, col as usize) == Some(true) && state.get_color(newR as usize, newC as usize) == Some(false)) || (state.get_color(row as usize, col as usize) == Some(false) && state.get_color(newR as usize, newC as usize) == Some(true))) && state.get_board(destR as usize, destC as usize) == None {
+                                legal = true;
+                                break;
+                            }
+                        }
+                    }
+                    if !legal {
+                        println!("This piece has no legal moves. Please select a different move.");
                         continue;
                     }
                     println!("Enter the direction you would like to move this piece: (0 = up and left, 1 = up and right, 2 = down and left, 3 = down and right)");
@@ -423,10 +453,57 @@ fn main() {
                         println!("Please enter a number from 0-3.");
                         continue;
                     }
-                    if (state.get_board(row as usize, col as usize) == Some(Piece::Black(false)) && dir > 1) || (state.get_board(row as usize, col as usize) == Some(Piece::White(false)) && dir < 2) {
-                        println!("This piece can't legally move in this direction.");
+                    let newR = row as i8 + dx[dir as usize];
+                    let newC = col as i8 + dy[dir as usize];
+                    if newR < 0 || newR > 7 || newC < 0 || newC > 7 {
+                        println!("The space you are trying to move to is out of range. Please select a different move.");
+                        continue;
                     }
-                    break;
+                    if (state.get_board(row as usize, col as usize) == Some(Piece::Black(false)) && dir > 1) || (state.get_board(row as usize, col as usize) == Some(Piece::White(false)) && dir < 2) {
+                        println!("This piece can't legally move in this direction. Please select a different move.");
+                        continue;
+                    }
+                    if state.get_color(row as usize, col as usize) == Some(true) {
+                        if state.get_board(newR as usize, newC as usize) == None {
+                            state.set_board(newR as usize, newC as usize, state.get_board(row as usize, col as usize));
+                            state.set_board(row as usize, col as usize, None);
+                            state.color = false;
+                            state.player = true;
+                            break;
+                        }
+                        let destR = row as i8 + 2 * dx[dir as usize];
+                        let destC = col as i8 + 2 * dy[dir as usize];
+                        if destR >= 0 && destR < 8 && destC >= 0 && destC < 8 {
+                            let destR = destR as u8;
+                            let destC = destC as u8;
+                            if state.get_color(newR as usize, newC as usize) == Some(false) && state.get_board(destR as usize, destC as usize) == None {
+                                state.set_board(destR as usize, destC as usize, state.get_board(row as usize, col as usize));
+                                state.set_board(newR as usize, newC as usize, None);
+                                state.set_board(row as usize, col as usize, None);
+                                let row = newR;
+                                let col = newC;
+                                //keep jumping pieces
+                                break;
+                            }
+                            else {
+                                println!("This move is illegal. Please select a different move.");
+                                continue;
+                            }
+                        }
+                        else {
+                            println!("This piece has no legal moves in this direction. Please select a different move.");
+                        }
+                    }
+                    else {
+                        if state.get_board(newR as usize, newC as usize) == None {
+                            state.set_board(newR as usize, newC as usize, state.get_board(row as usize, col as usize));
+                            state.set_board(row as usize, col as usize, None);
+                            state.color = true;
+                            state.player = true;
+                            break;
+                        }
+                        //jump piece
+                    }
                 }
             }
             break;
