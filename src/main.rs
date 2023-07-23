@@ -416,28 +416,30 @@ fn main() {
                         println!("The selected space does not have any legal moves. Please select a different space.");
                         continue;
                     }
-                    let dx: [i8; 4] = [-1, -1, 1, 1];
-                    let dy: [i8; 4] = [-1, 1, -1, 1];
+                    let dr: [i8; 4] = [-1, -1, 1, 1];
+                    let dc: [i8; 4] = [-1, 1, -1, 1];
                     let mut legal = false;
                     for dir in 0..4 {
-                        let newR = row as i8 + dx[dir as usize];
-                        let newC = col as i8 + dy[dir as usize];
-                        if newR >= 0 && newR < 8 && newC >= 0 && newC < 8 {
-                            let newR = newR as u8;
-                            let newC = newC as u8;
-                            if state.get_board(newR as usize, newC as usize) == None {
+                        let new_r = row as i8 + dr[dir as usize];
+                        let new_c = col as i8 + dc[dir as usize];
+                        if new_r >= 0 && new_r < 8 && new_c >= 0 && new_c < 8 {
+                            let new_r = new_r as u8;
+                            let new_c = new_c as u8;
+                            if state.get_board(new_r as usize, new_c as usize) == None {
                                 legal = true;
                                 break;
                             }
                         }
-                        let destR = row as i8 + 2 * dx[dir as usize];
-                        let destC = col as i8 + 2 * dy[dir as usize];
-                        if destR >= 0 && destR < 8 && destC >= 0 && destC < 8 {
-                            let destR = destR as u8;
-                            let destC = destC as u8;
-                            if ((state.get_color(row as usize, col as usize) == Some(true) && state.get_color(newR as usize, newC as usize) == Some(false)) || (state.get_color(row as usize, col as usize) == Some(false) && state.get_color(newR as usize, newC as usize) == Some(true))) && state.get_board(destR as usize, destC as usize) == None {
-                                legal = true;
-                                break;
+                        let dest_r = row as i8 + 2 * dr[dir as usize];
+                        let dest_c = col as i8 + 2 * dc[dir as usize];
+                        if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
+                            let dest_r = dest_r as u8;
+                            let dest_c = dest_c as u8;
+                            if state.is_crowned(row as usize, col as usize) == Some(true) || (state.get_color(row as usize, col as usize) == Some(true) && dir < 2) || (state.get_color(row as usize, col as usize) == Some(false) && dir > 1) {
+                                if ((state.get_color(row as usize, col as usize) == Some(true) && state.get_color(new_r as usize, new_c as usize) == Some(false)) || (state.get_color(row as usize, col as usize) == Some(false) && state.get_color(new_r as usize, new_c as usize) == Some(true))) && state.get_board(dest_r as usize, dest_c as usize) == None {
+                                    legal = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -453,9 +455,9 @@ fn main() {
                         println!("Please enter a number from 0-3.");
                         continue;
                     }
-                    let newR = row as i8 + dx[dir as usize];
-                    let newC = col as i8 + dy[dir as usize];
-                    if newR < 0 || newR > 7 || newC < 0 || newC > 7 {
+                    let new_r = row as i8 + dr[dir as usize];
+                    let new_c = col as i8 + dc[dir as usize];
+                    if new_r < 0 || new_r > 7 || new_c < 0 || new_c > 7 {
                         println!("The space you are trying to move to is out of range. Please select a different move.");
                         continue;
                     }
@@ -464,25 +466,73 @@ fn main() {
                         continue;
                     }
                     if state.get_color(row as usize, col as usize) == Some(true) {
-                        if state.get_board(newR as usize, newC as usize) == None {
-                            state.set_board(newR as usize, newC as usize, state.get_board(row as usize, col as usize));
+                        if state.get_board(new_r as usize, new_c as usize) == None {
+                            state.set_board(new_r as usize, new_c as usize, state.get_board(row as usize, col as usize));
                             state.set_board(row as usize, col as usize, None);
                             state.color = false;
                             state.player = true;
                             break;
                         }
-                        let destR = row as i8 + 2 * dx[dir as usize];
-                        let destC = col as i8 + 2 * dy[dir as usize];
-                        if destR >= 0 && destR < 8 && destC >= 0 && destC < 8 {
-                            let destR = destR as u8;
-                            let destC = destC as u8;
-                            if state.get_color(newR as usize, newC as usize) == Some(false) && state.get_board(destR as usize, destC as usize) == None {
-                                state.set_board(destR as usize, destC as usize, state.get_board(row as usize, col as usize));
-                                state.set_board(newR as usize, newC as usize, None);
+                        let dest_r = row as i8 + 2 * dr[dir as usize];
+                        let dest_c = col as i8 + 2 * dc[dir as usize];
+                        if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
+                            let dest_r = dest_r as u8;
+                            let dest_c = dest_c as u8;
+                            if state.get_color(new_r as usize, new_c as usize) == Some(false) && state.get_board(dest_r as usize, dest_c as usize) == None {
+                                state.set_board(dest_r as usize, dest_c as usize, state.get_board(row as usize, col as usize));
+                                state.set_board(new_r as usize, new_c as usize, None);
                                 state.set_board(row as usize, col as usize, None);
-                                let row = newR;
-                                let col = newC;
-                                //keep jumping pieces
+                                state.color = false;
+                                state.player = true;
+                                let row = dest_r;
+                                let col = dest_c;
+                                loop {
+                                    let mut legal = false;
+                                    for ind in 0..4 {
+                                        let new_r = row as i8 + dr[ind];
+                                        let new_c = col as i8 + dc[ind];
+                                        let dest_r = row as i8 + 2 * dr[ind];
+                                        let dest_c = col as i8 + 2 * dc[ind];
+                                        if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
+                                            let new_r = new_r as u8;
+                                            let new_c = new_c as u8;
+                                            let dest_r = dest_r as u8;
+                                            let dest_c = dest_c as u8;
+                                            if state.is_crowned(row as usize, col as usize) == Some(true) || dir < 2 {
+                                                if state.get_color(new_r as usize, new_c as usize) == Some(false) && state.get_board(dest_r as usize, dest_c as usize) == None {
+                                                    legal = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if !legal {
+                                        break;
+                                    }
+                                    println!("Enter the direction you would like to move this piece: (0 = up and left, 1 = up and right, 2 = down and left, 3 = down and right)");
+                                    let mut dir = String::new();
+                                    io::stdin().read_line(&mut dir).expect("Failed to read input.");
+                                    let dir: u8 = dir.trim().parse().expect("Not a number!");
+                                    let new_r = row as i8 + dr[dir as usize];
+                                    let new_c = col as i8 + dc[dir as usize];
+                                    let dest_r = row as i8 + 2 * dr[dir as usize];
+                                    let dest_c = col as i8 + 2 * dc[dir as usize];
+                                    if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
+                                        let new_r = new_r as u8;
+                                        let new_c = new_c as u8;
+                                        let dest_r = dest_r as u8;
+                                        let dest_c = dest_c as u8;
+                                        if state.is_crowned(row as usize, col as usize) == Some(true) || dir < 2 {
+                                            if state.get_color(new_r as usize, new_c as usize) == Some(false) && state.get_board(dest_r as usize, dest_c as usize) == None {
+                                                state.set_board(dest_r as usize, dest_c as usize, state.get_board(row as usize, col as usize));
+                                                state.set_board(new_r as usize, new_c as usize, None);
+                                                state.set_board(row as usize, col as usize, None);
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                    println!("This piece can't legally move in this direction. Please select another move.");
+                                }
                                 break;
                             }
                             else {
@@ -495,14 +545,83 @@ fn main() {
                         }
                     }
                     else {
-                        if state.get_board(newR as usize, newC as usize) == None {
-                            state.set_board(newR as usize, newC as usize, state.get_board(row as usize, col as usize));
+                        if state.get_board(new_r as usize, new_c as usize) == None {
+                            state.set_board(new_r as usize, new_c as usize, state.get_board(row as usize, col as usize));
                             state.set_board(row as usize, col as usize, None);
                             state.color = true;
                             state.player = true;
                             break;
                         }
-                        //jump piece
+                        let dest_r = row as i8 + 2 * dr[dir as usize];
+                        let dest_c = col as i8 + 2 * dc[dir as usize];
+                        if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
+                            let dest_r = dest_r as u8;
+                            let dest_c = dest_c as u8;
+                            if state.get_color(new_r as usize, new_c as usize) == Some(true) && state.get_board(dest_r as usize, dest_c as usize) == None {
+                                state.set_board(dest_r as usize, dest_c as usize, state.get_board(row as usize, col as usize));
+                                state.set_board(new_r as usize, new_c as usize, None);
+                                state.set_board(row as usize, col as usize, None);
+                                state.color = true;
+                                state.player = true;
+                                let row = dest_r;
+                                let col = dest_c;
+                                loop {
+                                    let mut legal = false;
+                                    for ind in 0..4 {
+                                        let new_r = row as i8 + dr[ind];
+                                        let new_c = col as i8 + dc[ind];
+                                        let dest_r = row as i8 + 2 * dr[ind];
+                                        let dest_c = col as i8 + 2 * dc[ind];
+                                        if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
+                                            let new_r = new_r as u8;
+                                            let new_c = new_c as u8;
+                                            let dest_r = dest_r as u8;
+                                            let dest_c = dest_c as u8;
+                                            if state.is_crowned(row as usize, col as usize) == Some(true) || dir > 1 {
+                                                if state.get_color(new_r as usize, new_c as usize) == Some(true) && state.get_board(dest_r as usize, dest_c as usize) == None {
+                                                    legal = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if !legal {
+                                        break;
+                                    }
+                                    println!("Enter the direction you would like to move this piece: (0 = up and left, 1 = up and right, 2 = down and left, 3 = down and right)");
+                                    let mut dir = String::new();
+                                    io::stdin().read_line(&mut dir).expect("Failed to read input.");
+                                    let dir: u8 = dir.trim().parse().expect("Not a number!");
+                                    let new_r = row as i8 + dr[dir as usize];
+                                    let new_c = col as i8 + dc[dir as usize];
+                                    let dest_r = row as i8 + 2 * dr[dir as usize];
+                                    let dest_c = col as i8 + 2 * dc[dir as usize];
+                                    if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
+                                        let new_r = new_r as u8;
+                                        let new_c = new_c as u8;
+                                        let dest_r = dest_r as u8;
+                                        let dest_c = dest_c as u8;
+                                        if state.is_crowned(row as usize, col as usize) == Some(true) || dir > 1 {
+                                            if state.get_color(new_r as usize, new_c as usize) == Some(true) && state.get_board(dest_r as usize, dest_c as usize) == None {
+                                                state.set_board(dest_r as usize, dest_c as usize, state.get_board(row as usize, col as usize));
+                                                state.set_board(new_r as usize, new_c as usize, None);
+                                                state.set_board(row as usize, col as usize, None);
+                                                continue;
+                                            }
+                                        }
+                                    }
+                                    println!("This piece can't legally move in this direction. Please select another move.");
+                                }
+                                break;
+                            }
+                            else {
+                                println!("This move is illegal. Please select a different move.");
+                                continue;
+                            }
+                        }
+                        else {
+                            println!("This piece has no legal moves in this direction. Please select a different move.");
+                        }
                     }
                 }
             }
