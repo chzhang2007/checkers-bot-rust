@@ -31,7 +31,7 @@ fn dfs_b(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
     let mut col: usize = *col1;
     let copy = state.clone();
     vec.push(copy);
-    if row < 1 {
+    if row < 2 {
         return vec;
     }
     if col > 1 && state.get_color(row - 1, col - 1) == Some(false) && state.get_board(row - 2, col - 2) == None {
@@ -71,7 +71,7 @@ fn dfs_w(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
     let mut col: usize = *col1;
     let copy = state.clone();
     vec.push(copy);
-    if row > 6 {
+    if row > 5 {
         return vec;
     }
     if col > 1 && state.get_color(row + 1, col - 1) == Some(true) && state.get_board(row + 2, col - 2) == None {
@@ -203,116 +203,114 @@ fn children(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
             vec.push(val);
         }
     }
-    if vec.is_empty() {
-        if state.color && state.get_board(row, col) == Some(Piece::Black(false)) {
-            if row > 0 {
-                if col > 0 && state.get_board(row - 1, col - 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row - 1, col - 1, Some(Piece::Black(false)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::Black(false)));
-                    state.set_board(row - 1, col - 1, None);
-                }
-                if col < 7 && state.get_board(row - 1, col + 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row - 1, col + 1, Some(Piece::Black(false)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::Black(false)));
-                    state.set_board(row - 1, col + 1, None);
-                }
+    if state.color && state.get_board(row, col) == Some(Piece::Black(false)) {
+        if row > 0 {
+            if col > 0 && state.get_board(row - 1, col - 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row - 1, col - 1, Some(Piece::Black(false)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::Black(false)));
+                state.set_board(row - 1, col - 1, None);
+            }
+            if col < 7 && state.get_board(row - 1, col + 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row - 1, col + 1, Some(Piece::Black(false)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::Black(false)));
+                state.set_board(row - 1, col + 1, None);
             }
         }
-        else if state.color && state.get_board(row, col) == Some(Piece::Black(true)) {
-            if row > 0 {
-                if col > 0 && state.get_board(row - 1, col - 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row - 1, col - 1, Some(Piece::Black(true)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::Black(true)));
-                    state.set_board(row - 1, col - 1, None);
-                }
-                if col < 7 && state.get_board(row - 1, col + 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row - 1, col + 1, Some(Piece::Black(true)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::Black(true)));
-                    state.set_board(row - 1, col + 1, None);
-                }
+    }
+    else if state.color && state.get_board(row, col) == Some(Piece::Black(true)) {
+        if row > 0 {
+            if col > 0 && state.get_board(row - 1, col - 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row - 1, col - 1, Some(Piece::Black(true)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::Black(true)));
+                state.set_board(row - 1, col - 1, None);
             }
-            if row < 7 {
-                if col > 0 && state.get_board(row + 1, col - 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row + 1, col - 1, Some(Piece::Black(true)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::Black(true)));
-                    state.set_board(row + 1, col - 1, None);
-                }
-                if col < 7 && state.get_board(row + 1, col + 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row + 1, col + 1, Some(Piece::Black(true)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::Black(true)));
-                    state.set_board(row + 1, col + 1, None);
-                }  
+            if col < 7 && state.get_board(row - 1, col + 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row - 1, col + 1, Some(Piece::Black(true)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::Black(true)));
+                state.set_board(row - 1, col + 1, None);
             }
         }
-        else if !state.color && state.get_board(row, col) == Some(Piece::White(false)) {
-            if row < 7 {
-                if col > 0 && state.get_board(row + 1, col - 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row + 1, col - 1, Some(Piece::White(false)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::White(false)));
-                    state.set_board(row + 1, col - 1, None);
-                }
-                if col < 7 && state.get_board(row + 1, col + 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row + 1, col + 1, Some(Piece::White(false)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::White(false)));
-                    state.set_board(row + 1, col + 1, None);
-                }
+        if row < 7 {
+            if col > 0 && state.get_board(row + 1, col - 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row + 1, col - 1, Some(Piece::Black(true)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::Black(true)));
+                state.set_board(row + 1, col - 1, None);
+            }
+            if col < 7 && state.get_board(row + 1, col + 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row + 1, col + 1, Some(Piece::Black(true)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::Black(true)));
+                state.set_board(row + 1, col + 1, None);
+            }  
+        }
+    }
+    else if !state.color && state.get_board(row, col) == Some(Piece::White(false)) {
+        if row < 7 {
+            if col > 0 && state.get_board(row + 1, col - 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row + 1, col - 1, Some(Piece::White(false)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::White(false)));
+                state.set_board(row + 1, col - 1, None);
+            }
+            if col < 7 && state.get_board(row + 1, col + 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row + 1, col + 1, Some(Piece::White(false)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::White(false)));
+                state.set_board(row + 1, col + 1, None);
             }
         }
-        else if !state.color && state.get_board(row, col) == Some(Piece::White(true)) {
-            if row > 0 {
-                if col > 0 && state.get_board(row - 1, col - 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row - 1, col - 1, Some(Piece::White(true)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::White(true)));
-                    state.set_board(row - 1, col - 1, None);
-                }
-                if col < 7 && state.get_board(row - 1, col + 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row - 1, col + 1, Some(Piece::White(true)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::White(true)));
-                    state.set_board(row - 1, col + 1, None);
-                }
+    }
+    else if !state.color && state.get_board(row, col) == Some(Piece::White(true)) {
+        if row > 0 {
+            if col > 0 && state.get_board(row - 1, col - 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row - 1, col - 1, Some(Piece::White(true)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::White(true)));
+                state.set_board(row - 1, col - 1, None);
             }
-            if row < 7 {
-                if col > 0 && state.get_board(row + 1, col - 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row + 1, col - 1, Some(Piece::White(true)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::White(true)));
-                    state.set_board(row + 1, col - 1, None);
-                }
-                if col < 7 && state.get_board(row + 1, col + 1) == None {
-                    state.set_board(row, col, None);
-                    state.set_board(row + 1, col + 1, Some(Piece::White(true)));
-                    vec.push(state);
-                    state.set_board(row, col, Some(Piece::White(true)));
-                    state.set_board(row + 1, col + 1, None);
-                }  
+            if col < 7 && state.get_board(row - 1, col + 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row - 1, col + 1, Some(Piece::White(true)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::White(true)));
+                state.set_board(row - 1, col + 1, None);
             }
+        }
+        if row < 7 {
+            if col > 0 && state.get_board(row + 1, col - 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row + 1, col - 1, Some(Piece::White(true)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::White(true)));
+                state.set_board(row + 1, col - 1, None);
+            }
+            if col < 7 && state.get_board(row + 1, col + 1) == None {
+                state.set_board(row, col, None);
+                state.set_board(row + 1, col + 1, Some(Piece::White(true)));
+                vec.push(state.clone());
+                state.set_board(row, col, Some(Piece::White(true)));
+                state.set_board(row + 1, col + 1, None);
+            }  
         }
     }
     return vec;
 }
-fn eval(state: &State) -> f64 {
-    let mut score: u32 = 0;
+fn eval(state: &State) -> i64 {
+    let mut score: i64 = 0;
     for row in 0..8 {
         for col in 0..8 {
             if state.get_color(row, col) == None {
@@ -321,46 +319,87 @@ fn eval(state: &State) -> f64 {
             if state.color {
                 if state.get_color(row, col) == Some(true) {
                     if state.is_crowned(row, col) == Some(true) {
-                        score += 2 * (8 - (row as u32));
+                        score += 2 * (8 - (row as i64));
                     }
                     else {
-                        score += 8 - (row as u32);
+                        score += 8 - (row as i64);
                     }
                 }
                 else {
                     if state.is_crowned(row, col) == Some(true) {
-                        score -= 2 * (row as u32);
+                        score -= 2 * (row as i64);
                     }
                     else {
-                        score -= row as u32;
+                        score -= row as i64;
                     }                
                 }
             }
             else if !state.color {
                 if state.get_color(row, col) == Some(false) {
                     if state.is_crowned(row, col) == Some(true) {
-                        score += 2 * (row as u32);
+                        score += 2 * (row as i64);
                     }
                     else {
-                        score += row as u32;
+                        score += row as i64;
                     }
                 }
                 else {
                     if state.is_crowned(row, col) == Some(true) {
-                        score += 2 * (8 - (row as u32));
+                        score += 2 * (8 - (row as i64));
                     }
                     else {
-                        score += 8 - (row as u32);
+                        score += 8 - (row as i64);
                     }      
                 }
             }
         }
     }
-    return 0.0;
+    score
 }
-fn minimax(state1: &State, min: f64, max: f64) -> State { //max player = black, min player = white
-    let mut state: State = *state1;
-    return state;
+fn minimax(state1: &State, depth: &u8) -> (State, i64) { //max player = black, min player = white
+    let state: State = *state1;
+    let mut new_state = state;
+    let mut val: i64 = 0;
+    if *depth == 3 || terminal(&state) != None {
+        return (state, eval(&state));
+    }
+    if state.color == true { //max player
+        val = -1000000000;
+        for row in 0..8 {
+            for col in 0..8 {
+                let vec = children(&state, &row, &col);
+                for mut i in vec {
+                    i.color = !i.color;
+                    i.player = !i.player;
+                    let tup = minimax(&i, &(depth + 1));
+                    if tup.1 > val {
+                        new_state = i;
+                        val = tup.1;
+                    }
+                }
+            }
+        }
+        return (new_state, val);
+    }
+    else { //min player
+        val = 1000000000;
+        for row in 0..8 {
+            for col in 0..8 {
+                let vec = children(&state, &row, &col);
+                for mut i in vec {
+                    i.color = !i.color;
+                    i.player = !i.player;
+                    let tup = minimax(&i, &(depth + 1));
+                    if tup.1 < val {
+                        new_state = i;
+                        val = tup.1;
+                    }
+                }
+            }
+        }
+        return (new_state, val);
+    }
+    return (state, val);
 }
 fn main() {
     loop {
@@ -387,9 +426,19 @@ fn main() {
             println!("You are playing white.");
         }
         loop {
-            if state.player {
-                //computer's turn
+            let end = terminal(&state);
+            if end == Some(true) {
+                println!("Black won!");
                 break;
+            }
+            else if end == Some(false) {
+                println!("White won!");
+                break;
+            }
+            if state.player {
+                let tup = minimax(&state, &0);
+                state = tup.0;
+                println!("The computer has made its move.");
             }
             else {
                 let mut row = String::new();
@@ -625,7 +674,7 @@ fn main() {
                     }
                 }
             }
-            break;
+            println!("{state}");
         }
         println!("Enter 0 to play again, or enter any other number to quit.");
         let mut inp = String::new();
