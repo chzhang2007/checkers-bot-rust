@@ -399,10 +399,14 @@ fn minimax(state1: &State, depth: &u8) -> (State, i64) { //max player = black, m
         }
         return (new_state, val);
     }
-    return (state, val);
 }
 fn main() {
-    loop {
+    let mut test = State::new();
+    test.set_board(0, 0, Some(Piece::Black(true)));
+    println!("{test}");
+    let vec = children(&test, &0, &0);
+    println!("{}", vec.len());
+    /*loop {
         println!("Hello! Please enter 0 for a link to the rules, or enter any other number to start playing!");
         let mut state = State::new();
         let mut inp = String::new();
@@ -685,5 +689,5 @@ fn main() {
             break;
         }
         println!();
-    }
+    }*/
 }
