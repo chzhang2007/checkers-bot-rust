@@ -112,7 +112,7 @@ fn dfs_crowned(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
     let mut curpiece: Option<Piece> = state.get_board(row, col);
     let copy = state.clone();
     vec.push(copy);
-    if col > 1 && state.get_color(row - 1, col - 1) != state.get_color(row, col) && state.get_board(row - 2, col - 2) == None {
+    if row > 1 && col > 1 && state.get_color(row - 1, col - 1) != state.get_color(row, col) && state.get_board(row - 2, col - 2) == None {
         let piece: Option<Piece> = state.get_board(row - 1, col - 1);
         state.set_board(row, col, None);
         state.set_board(row - 1, col - 1, None);
@@ -126,7 +126,7 @@ fn dfs_crowned(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
         state.set_board(row - 2, col - 2, None);
         vec.retain(|value| *value != state);
     }
-    if col < 6 && state.get_color(row - 1, col + 1) != state.get_color(row, col) && state.get_board(row - 2, col + 2) == None {
+    if row > 1 && col < 6 && state.get_color(row - 1, col + 1) != state.get_color(row, col) && state.get_board(row - 2, col + 2) == None {
         let piece: Option<Piece> = state.get_board(row - 1, col + 1);
         state.set_board(row, col, None);
         state.set_board(row - 1, col + 1, None);
@@ -140,7 +140,7 @@ fn dfs_crowned(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
         state.set_board(row - 2, col + 2, None);
         vec.retain(|value| *value != state);
     }
-    if col > 1 && state.get_color(row + 1, col - 1) != state.get_color(row, col) && state.get_board(row + 2, col - 2) == None {
+    if row < 6 && col > 1 && state.get_color(row + 1, col - 1) != state.get_color(row, col) && state.get_board(row + 2, col - 2) == None {
         let piece: Option<Piece> = state.get_board(row + 1, col - 1);
         state.set_board(row, col, None);
         state.set_board(row + 1, col - 1, None);
@@ -154,7 +154,7 @@ fn dfs_crowned(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
         state.set_board(row + 2, col - 2, None);
         vec.retain(|value| *value != state);
     }
-    if col < 6 && state.get_color(row + 1, col + 1) != state.get_color(row, col) && state.get_board(row + 2, col + 2) == None {
+    if row < 6 && col < 6 && state.get_color(row + 1, col + 1) != state.get_color(row, col) && state.get_board(row + 2, col + 2) == None {
         let piece: Option<Piece> = state.get_board(row + 1, col + 1);
         state.set_board(row, col, None);
         state.set_board(row + 1, col + 1, None);
