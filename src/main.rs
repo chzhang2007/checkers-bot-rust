@@ -24,149 +24,42 @@ fn terminal(state: &State) -> Option<bool> { //not terminal = None, black wins =
     }
     return None;
 }
-fn dfs_b(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
-    let mut vec: Vec<State> = Vec::new();
-    let mut state: State = *state1;
-    let mut row: usize = *row1;
-    let mut col: usize = *col1;
-    let copy = state.clone();
-    vec.push(copy);
-    if row < 2 {
-        return vec;
-    }
-    if col > 1 && state.get_color(row - 1, col - 1) == Some(false) && state.get_board(row - 2, col - 2) == None {
-        let piece: Option<Piece> = state.get_board(row - 1, col - 1);
-        state.set_board(row, col, None);
-        state.set_board(row - 1, col - 1, None);
-        state.set_board(row - 2, col - 2, Some(Piece::Black(false)));
-        let v: Vec<State> = dfs_b(&state, &(row - 2), &(col - 2));
-        for val in v {
-            vec.push(val);
+fn dfs(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
+    let mut state = *state1;
+    let row = *row1;
+    let col = *col1;
+    let dr: [i8; 4] = [-1, -1, 1, 1];
+    let dc: [i8; 4] = [-1, 1, -1, 1];
+    let mut vec = Vec::new();
+    let mut cont = false;
+    for dir in 0..4 {
+        let new_r = row as i8 + dr[dir];
+        let new_c = col as i8 + dc[dir];
+        let dest_r = row as i8 + 2 * dr[dir];
+        let dest_c = col as i8 + 2 * dc[dir];
+        if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
+            if state.is_crowned(row, col) == Some(true) || (state.get_color(row, col) == Some(true) && dir < 2) || (state.get_color(row, col) == Some(false) && dir > 1) {
+                if ((state.get_color(row, col) == Some(true) && state.get_color(new_r as usize, new_c as usize) == Some(false)) || (state.get_color(row, col) == Some(false) && state.get_color(new_r as usize, new_c as usize) == Some(true))) && state.get_board(dest_r as usize, dest_c as usize) == None {
+                    cont = true;
+                    let piece = state.get_board(new_r as usize, new_c as usize);
+                    state.set_board(dest_r as usize, dest_c as usize, state.get_board(row, col));
+                    state.set_board(new_r as usize, new_c as usize, None);
+                    state.set_board(row, col, None);
+                    let subvec = dfs(&state, &(dest_r as usize), &(dest_c as usize));
+                    for val in subvec {
+                        vec.push(val);
+                    }
+                    state.set_board(row as usize, col as usize, state.get_board(dest_r as usize, dest_c as usize));
+                    state.set_board(new_r as usize, new_c as usize, piece);
+                    state.set_board(dest_r as usize, dest_c as usize, None);
+                }
+            }
         }
-        state.set_board(row, col, Some(Piece::Black(false)));
-        state.set_board(row - 1, col - 1, piece);
-        state.set_board(row - 2, col - 2, None);
-        vec.retain(|value| *value != state);
     }
-    if col < 6 && state.get_color(row - 1, col + 1) == Some(false) && state.get_board(row - 2, col + 2) == None {
-        let piece: Option<Piece> = state.get_board(row - 1, col + 1);
-        state.set_board(row, col, None);
-        state.set_board(row - 1, col + 1, None);
-        state.set_board(row - 2, col + 2, Some(Piece::Black(false)));
-        let v: Vec<State> = dfs_b(&state, &(row - 2), &(col + 2));
-        for val in v {
-            vec.push(val);
-        }
-        state.set_board(row, col, Some(Piece::Black(false)));
-        state.set_board(row - 1, col + 1, piece);
-        state.set_board(row - 2, col + 2, None);
-        vec.retain(|value| *value != state);
-    }
-    return vec;
-}
-fn dfs_w(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
-    let mut vec: Vec<State> = Vec::new();
-    let mut state: State = *state1;
-    let mut row: usize = *row1;
-    let mut col: usize = *col1;
-    let copy = state.clone();
-    vec.push(copy);
-    if row > 5 {
-        return vec;
-    }
-    if col > 1 && state.get_color(row + 1, col - 1) == Some(true) && state.get_board(row + 2, col - 2) == None {
-        let piece: Option<Piece> = state.get_board(row + 1, col - 1);
-        state.set_board(row, col, None);
-        state.set_board(row + 1, col - 1, None);
-        state.set_board(row + 2, col - 2, Some(Piece::White(false)));
-        let v: Vec<State> = dfs_w(&state, &(row + 2), &(col - 2));
-        for val in v {
-            vec.push(val);
-        }
-        state.set_board(row, col, Some(Piece::White(false)));
-        state.set_board(row + 1, col - 1, piece);
-        state.set_board(row + 2, col - 2, None);
-        vec.retain(|value| *value != state);
-    }
-    if col < 6 && state.get_color(row + 1, col + 1) == Some(true) && state.get_board(row + 2, col + 2) == None {
-        let piece: Option<Piece> = state.get_board(row + 1, col + 1);
-        state.set_board(row, col, None);
-        state.set_board(row + 1, col + 1, None);
-        state.set_board(row + 2, col + 2, Some(Piece::White(false)));
-        let v: Vec<State> = dfs_w(&state, &(row + 2), &(col + 2));
-        for val in v {
-            vec.push(val);
-        }
-        state.set_board(row, col, Some(Piece::White(false)));
-        state.set_board(row + 1, col + 1, piece);
-        state.set_board(row + 2, col + 2, None);
-        vec.retain(|value| *value != state);
-    }
-    return vec;
-}
-fn dfs_crowned(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
-    let mut vec: Vec<State> = Vec::new();
-    let mut state: State = *state1;
-    let mut row: usize = *row1;
-    let mut col: usize = *col1;
-    let mut curpiece: Option<Piece> = state.get_board(row, col);
-    let copy = state.clone();
-    vec.push(copy);
-    if row > 1 && col > 1 && state.get_color(row - 1, col - 1) != state.get_color(row, col) && state.get_board(row - 2, col - 2) == None {
-        let piece: Option<Piece> = state.get_board(row - 1, col - 1);
-        state.set_board(row, col, None);
-        state.set_board(row - 1, col - 1, None);
-        state.set_board(row - 2, col - 2, curpiece);
-        let v: Vec<State> = dfs_crowned(&state, &(row - 2), &(col - 2));
-        for val in v {
-            vec.push(val);
-        }
-        state.set_board(row, col, curpiece);
-        state.set_board(row - 1, col - 1, piece);
-        state.set_board(row - 2, col - 2, None);
-        vec.retain(|value| *value != state);
-    }
-    if row > 1 && col < 6 && state.get_color(row - 1, col + 1) != state.get_color(row, col) && state.get_board(row - 2, col + 2) == None {
-        let piece: Option<Piece> = state.get_board(row - 1, col + 1);
-        state.set_board(row, col, None);
-        state.set_board(row - 1, col + 1, None);
-        state.set_board(row - 2, col + 2, curpiece);
-        let v: Vec<State> = dfs_crowned(&state, &(row - 2), &(col + 2));
-        for val in v {
-            vec.push(val);
-        }
-        state.set_board(row, col, curpiece);
-        state.set_board(row - 1, col + 1, piece);
-        state.set_board(row - 2, col + 2, None);
-        vec.retain(|value| *value != state);
-    }
-    if row < 6 && col > 1 && state.get_color(row + 1, col - 1) != state.get_color(row, col) && state.get_board(row + 2, col - 2) == None {
-        let piece: Option<Piece> = state.get_board(row + 1, col - 1);
-        state.set_board(row, col, None);
-        state.set_board(row + 1, col - 1, None);
-        state.set_board(row + 2, col - 2, curpiece);
-        let v: Vec<State> = dfs_crowned(&state, &(row + 2), &(col - 2));
-        for val in v {
-            vec.push(val);
-        }
-        state.set_board(row, col, curpiece);
-        state.set_board(row + 1, col - 1, piece);
-        state.set_board(row + 2, col - 2, None);
-        vec.retain(|value| *value != state);
-    }
-    if row < 6 && col < 6 && state.get_color(row + 1, col + 1) != state.get_color(row, col) && state.get_board(row + 2, col + 2) == None {
-        let piece: Option<Piece> = state.get_board(row + 1, col + 1);
-        state.set_board(row, col, None);
-        state.set_board(row + 1, col + 1, None);
-        state.set_board(row + 2, col + 2, curpiece);
-        let v: Vec<State> = dfs_crowned(&state, &(row + 2), &(col + 2));
-        for val in v {
-            vec.push(val);
-        }
-        state.set_board(row, col, curpiece);
-        state.set_board(row + 1, col + 1, piece);
-        state.set_board(row + 2, col + 2, None);
-        vec.retain(|value| *value != state);
+    if !cont {
+        let mut statevec = Vec::new();
+        statevec.push(state);
+        return statevec;
     }
     return vec;
 }
@@ -175,34 +68,10 @@ fn children(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
     let mut state: State = *state1;
     let mut row: usize = *row1;
     let mut col: usize = *col1;
-    if state.color && state.get_board(row, col) == Some(Piece::Black(false)) {
-        if row > 1 {
-            let v: Vec<State> = dfs_b(&state, &row, &col);
-            for val in v {
-                vec.push(val);
-            }
-        }
-    }
-    else if state.color && state.get_board(row, col) == Some(Piece::Black(true)) {
-        let v: Vec<State> = dfs_crowned(&state, &row, &col);
+        let v: Vec<State> = dfs(&state, &row, &col);
         for val in v {
             vec.push(val);
         }
-    }
-    else if !state.color && state.get_board(row, col) == Some(Piece::White(false)) {
-        if row < 6 {
-            let v: Vec<State> = dfs_w(&state, &row, &col);
-            for val in v {
-                vec.push(val);
-            }
-        }
-    }
-    else if !state.color && state.get_board(row, col) == Some(Piece::White(true)) {
-        let v: Vec<State> = dfs_crowned(&state, &row, &col);
-        for val in v {
-            vec.push(val);
-        }
-    }
     if state.color && state.get_board(row, col) == Some(Piece::Black(false)) {
         if row > 0 {
             if col > 0 && state.get_board(row - 1, col - 1) == None {
@@ -401,12 +270,8 @@ fn minimax(state1: &State, depth: &u8) -> (State, i64) { //max player = black, m
     }
 }
 fn main() {
-    let mut test = State::new();
-    test.set_board(0, 0, Some(Piece::Black(true)));
-    println!("{test}");
-    let vec = children(&test, &0, &0);
-    println!("{}", vec.len());
-    /*loop {
+    //todo crown checkers when they reach the end
+    loop {
         println!("Hello! Please enter 0 for a link to the rules, or enter any other number to start playing!");
         let mut state = State::new();
         let mut inp = String::new();
@@ -689,5 +554,5 @@ fn main() {
             break;
         }
         println!();
-    }*/
+    }
 }

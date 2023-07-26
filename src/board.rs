@@ -97,14 +97,14 @@ impl Default for State {
         let mut brd: [[Option<Piece>; 8]; 8] = [[None; 8]; 8];
         for row in 0..3 {
             for col in 0..8 {
-                if col % 2 == 1 {
+                if row % 2 != col % 2 {
                     brd[row][col] = Some(Piece::White(bool::from(false)));
                 }
             }
         }
         for row in 5..8 {
             for col in 0..8 {
-                if col % 2 == 0 {
+                if row % 2 == col % 2 {
                     brd[row][col] = Some(Piece::Black(bool::from(false)));
                 }
             }
