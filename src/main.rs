@@ -41,17 +41,25 @@ fn dfs(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
             if state.is_crowned(row, col) == Some(true) || (state.get_color(row, col) == Some(true) && dir < 2) || (state.get_color(row, col) == Some(false) && dir > 1) {
                 if ((state.get_color(row, col) == Some(true) && state.get_color(new_r as usize, new_c as usize) == Some(false)) || (state.get_color(row, col) == Some(false) && state.get_color(new_r as usize, new_c as usize) == Some(true))) && state.get_board(dest_r as usize, dest_c as usize) == None {
                     cont = true;
+                    let mut crown = false;
                     let piece = state.get_board(new_r as usize, new_c as usize);
                     state.set_board(dest_r as usize, dest_c as usize, state.get_board(row, col));
                     state.set_board(new_r as usize, new_c as usize, None);
                     state.set_board(row, col, None);
+                    if (dest_r == 0 && state.get_board(dest_r as usize, dest_c as usize) == Some(Piece::Black(false))) || (dest_r == 7 && state.get_board(dest_r as usize, dest_c as usize) == Some(Piece::White(false))) {
+                        state.toggle_crown(dest_r as usize, dest_c as usize);
+                        crown = true;
+                    }
                     let subvec = dfs(&state, &(dest_r as usize), &(dest_c as usize));
                     for val in subvec {
                         vec.push(val);
                     }
-                    state.set_board(row as usize, col as usize, state.get_board(dest_r as usize, dest_c as usize));
+                    state.set_board(row, col, state.get_board(dest_r as usize, dest_c as usize));
                     state.set_board(new_r as usize, new_c as usize, piece);
                     state.set_board(dest_r as usize, dest_c as usize, None);
+                    if crown {
+                        state.toggle_crown(row, col);
+                    }
                 }
             }
         }
@@ -68,112 +76,35 @@ fn children(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
     let mut state: State = *state1;
     let mut row: usize = *row1;
     let mut col: usize = *col1;
-        let v: Vec<State> = dfs(&state, &row, &col);
-        for val in v {
+    let dr: [i8; 4] = [-1, -1, 1, 1];
+    let dc: [i8; 4] = [-1, 1, -1, 1];
+    let v: Vec<State> = dfs(&state, &row, &col);
+    for val in v {
+        if val != state {
             vec.push(val);
         }
-    if state.color && state.get_board(row, col) == Some(Piece::Black(false)) {
-        if row > 0 {
-            if col > 0 && state.get_board(row - 1, col - 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row - 1, col - 1, Some(Piece::Black(false)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::Black(false)));
-                state.set_board(row - 1, col - 1, None);
-            }
-            if col < 7 && state.get_board(row - 1, col + 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row - 1, col + 1, Some(Piece::Black(false)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::Black(false)));
-                state.set_board(row - 1, col + 1, None);
-            }
-        }
     }
-    else if state.color && state.get_board(row, col) == Some(Piece::Black(true)) {
-        if row > 0 {
-            if col > 0 && state.get_board(row - 1, col - 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row - 1, col - 1, Some(Piece::Black(true)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::Black(true)));
-                state.set_board(row - 1, col - 1, None);
+    for dir in 0..4 {
+        let new_r = row as i8 + dr[dir];
+        let new_c = col as i8 + dc[dir];
+        let mut crown = false;
+        if new_r >= 0 && new_r < 8 && new_c >= 0 && new_c < 8 {
+            if state.is_crowned(row, col) == Some(true) || (state.get_color(row, col) == Some(true) && dir < 2) || (state.get_color(row, col) == Some(false) && dir > 1) {
+                if state.get_board(new_r as usize, new_c as usize) == None {
+                    state.set_board(new_r as usize, new_c as usize, state.get_board(row, col));
+                    state.set_board(row, col, None);
+                    if (new_r == 0 && state.get_board(new_r as usize, new_c as usize) == Some(Piece::Black(false))) || (new_r == 7 && state.get_board(new_r as usize, new_c as usize) == Some(Piece::White(false))) {
+                        state.toggle_crown(new_r as usize, new_c as usize);
+                        crown = true;
+                    }
+                    vec.push(state.clone());
+                    state.set_board(row, col, state.get_board(new_r as usize, new_c as usize));
+                    state.set_board(new_r as usize, new_c as usize, None);
+                    if crown {
+                        state.toggle_crown(row, col);
+                    }
+                }
             }
-            if col < 7 && state.get_board(row - 1, col + 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row - 1, col + 1, Some(Piece::Black(true)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::Black(true)));
-                state.set_board(row - 1, col + 1, None);
-            }
-        }
-        if row < 7 {
-            if col > 0 && state.get_board(row + 1, col - 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row + 1, col - 1, Some(Piece::Black(true)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::Black(true)));
-                state.set_board(row + 1, col - 1, None);
-            }
-            if col < 7 && state.get_board(row + 1, col + 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row + 1, col + 1, Some(Piece::Black(true)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::Black(true)));
-                state.set_board(row + 1, col + 1, None);
-            }  
-        }
-    }
-    else if !state.color && state.get_board(row, col) == Some(Piece::White(false)) {
-        if row < 7 {
-            if col > 0 && state.get_board(row + 1, col - 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row + 1, col - 1, Some(Piece::White(false)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::White(false)));
-                state.set_board(row + 1, col - 1, None);
-            }
-            if col < 7 && state.get_board(row + 1, col + 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row + 1, col + 1, Some(Piece::White(false)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::White(false)));
-                state.set_board(row + 1, col + 1, None);
-            }
-        }
-    }
-    else if !state.color && state.get_board(row, col) == Some(Piece::White(true)) {
-        if row > 0 {
-            if col > 0 && state.get_board(row - 1, col - 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row - 1, col - 1, Some(Piece::White(true)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::White(true)));
-                state.set_board(row - 1, col - 1, None);
-            }
-            if col < 7 && state.get_board(row - 1, col + 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row - 1, col + 1, Some(Piece::White(true)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::White(true)));
-                state.set_board(row - 1, col + 1, None);
-            }
-        }
-        if row < 7 {
-            if col > 0 && state.get_board(row + 1, col - 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row + 1, col - 1, Some(Piece::White(true)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::White(true)));
-                state.set_board(row + 1, col - 1, None);
-            }
-            if col < 7 && state.get_board(row + 1, col + 1) == None {
-                state.set_board(row, col, None);
-                state.set_board(row + 1, col + 1, Some(Piece::White(true)));
-                vec.push(state.clone());
-                state.set_board(row, col, Some(Piece::White(true)));
-                state.set_board(row + 1, col + 1, None);
-            }  
         }
     }
     return vec;
@@ -188,7 +119,7 @@ fn eval(state: &State) -> i64 {
             if state.color {
                 if state.get_color(row, col) == Some(true) {
                     if state.is_crowned(row, col) == Some(true) {
-                        score += 2 * (8 - (row as i64));
+                        score += 10;
                     }
                     else {
                         score += 8 - (row as i64);
@@ -196,7 +127,7 @@ fn eval(state: &State) -> i64 {
                 }
                 else {
                     if state.is_crowned(row, col) == Some(true) {
-                        score -= 2 * (row as i64);
+                        score -= 10;
                     }
                     else {
                         score -= row as i64;
@@ -206,7 +137,7 @@ fn eval(state: &State) -> i64 {
             else if !state.color {
                 if state.get_color(row, col) == Some(false) {
                     if state.is_crowned(row, col) == Some(true) {
-                        score += 2 * (row as i64);
+                        score += 10;
                     }
                     else {
                         score += row as i64;
@@ -214,7 +145,7 @@ fn eval(state: &State) -> i64 {
                 }
                 else {
                     if state.is_crowned(row, col) == Some(true) {
-                        score += 2 * (8 - (row as i64));
+                        score += 10;
                     }
                     else {
                         score += 8 - (row as i64);
@@ -229,21 +160,26 @@ fn minimax(state1: &State, depth: &u8) -> (State, i64) { //max player = black, m
     let state: State = *state1;
     let mut new_state = state;
     let mut val: i64 = 0;
-    if *depth == 3 || terminal(&state) != None {
+    if *depth == 5 || terminal(&state) != None {
         return (state, eval(&state));
     }
     if state.color == true { //max player
         val = -1000000000;
         for row in 0..8 {
             for col in 0..8 {
-                let vec = children(&state, &row, &col);
-                for mut i in vec {
-                    i.color = !i.color;
-                    i.player = !i.player;
-                    let tup = minimax(&i, &(depth + 1));
-                    if tup.1 > val {
-                        new_state = i;
-                        val = tup.1;
+                if state.get_color(row, col) == Some(true) {
+                    let vec = children(&state, &row, &col);
+                    for mut i in vec {
+                        if i == state {
+                            continue;
+                        }
+                        i.color = !i.color;
+                        i.player = !i.player;
+                        let tup = minimax(&i, &(depth + 1));
+                        if tup.1 > val {
+                            new_state = i;
+                            val = tup.1;
+                        }
                     }
                 }
             }
@@ -254,14 +190,16 @@ fn minimax(state1: &State, depth: &u8) -> (State, i64) { //max player = black, m
         val = 1000000000;
         for row in 0..8 {
             for col in 0..8 {
-                let vec = children(&state, &row, &col);
-                for mut i in vec {
-                    i.color = !i.color;
-                    i.player = !i.player;
-                    let tup = minimax(&i, &(depth + 1));
-                    if tup.1 < val {
-                        new_state = i;
-                        val = tup.1;
+                if state.get_color(row, col) == Some(false) {
+                    let vec = children(&state, &row, &col);
+                    for mut i in vec {
+                        i.color = !i.color;
+                        i.player = !i.player;
+                        let tup = minimax(&i, &(depth + 1));
+                        if tup.1 < val {
+                            new_state = i;
+                            val = tup.1;
+                        }
                     }
                 }
             }
@@ -270,7 +208,6 @@ fn minimax(state1: &State, depth: &u8) -> (State, i64) { //max player = black, m
     }
 }
 fn main() {
-    //todo crown checkers when they reach the end
     loop {
         println!("Hello! Please enter 0 for a link to the rules, or enter any other number to start playing!");
         let mut state = State::new();
@@ -304,6 +241,25 @@ fn main() {
                 println!("White won!");
                 break;
             }
+            let mut moves = false;
+            for r in 0..8 {
+                for c in 0..8 {
+                    if (state.color == true && state.get_color(r, c) == Some(true)) || (state.color == false && state.get_color(r, c) == Some(false)) {
+                        let vec = children(&state, &r, &c);
+                        if !vec.is_empty() {
+                            moves = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if !moves && state.color == true {
+                println!("White won!");
+                break;
+            }
+            else if !moves {
+                println!("Black won!");
+            }
             if state.player {
                 let tup = minimax(&state, &0);
                 state = tup.0;
@@ -336,35 +292,6 @@ fn main() {
                     }
                     let dr: [i8; 4] = [-1, -1, 1, 1];
                     let dc: [i8; 4] = [-1, 1, -1, 1];
-                    let mut legal = false;
-                    for dir in 0..4 {
-                        let new_r = row as i8 + dr[dir as usize];
-                        let new_c = col as i8 + dc[dir as usize];
-                        if new_r >= 0 && new_r < 8 && new_c >= 0 && new_c < 8 {
-                            let new_r = new_r as u8;
-                            let new_c = new_c as u8;
-                            if state.get_board(new_r as usize, new_c as usize) == None {
-                                legal = true;
-                                break;
-                            }
-                        }
-                        let dest_r = row as i8 + 2 * dr[dir as usize];
-                        let dest_c = col as i8 + 2 * dc[dir as usize];
-                        if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
-                            let dest_r = dest_r as u8;
-                            let dest_c = dest_c as u8;
-                            if state.is_crowned(row as usize, col as usize) == Some(true) || (state.get_color(row as usize, col as usize) == Some(true) && dir < 2) || (state.get_color(row as usize, col as usize) == Some(false) && dir > 1) {
-                                if ((state.get_color(row as usize, col as usize) == Some(true) && state.get_color(new_r as usize, new_c as usize) == Some(false)) || (state.get_color(row as usize, col as usize) == Some(false) && state.get_color(new_r as usize, new_c as usize) == Some(true))) && state.get_board(dest_r as usize, dest_c as usize) == None {
-                                    legal = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if !legal {
-                        println!("This piece has no legal moves. Please select a different move.");
-                        continue;
-                    }
                     println!("Enter the direction you would like to move this piece: (0 = up and left, 1 = up and right, 2 = down and left, 3 = down and right)");
                     let mut dir = String::new();
                     io::stdin().read_line(&mut dir).expect("Failed to read input.");
@@ -387,6 +314,9 @@ fn main() {
                         if state.get_board(new_r as usize, new_c as usize) == None {
                             state.set_board(new_r as usize, new_c as usize, state.get_board(row as usize, col as usize));
                             state.set_board(row as usize, col as usize, None);
+                            if new_r == 0 && state.is_crowned(new_r as usize, new_c as usize) == Some(false) {
+                                state.toggle_crown(new_r as usize, new_c as usize);
+                            }
                             state.color = false;
                             state.player = true;
                             break;
@@ -402,31 +332,20 @@ fn main() {
                                 state.set_board(row as usize, col as usize, None);
                                 state.color = false;
                                 state.player = true;
+                                if dest_r == 0 && state.is_crowned(dest_r as usize, dest_c as usize) == Some(false) {
+                                    state.toggle_crown(dest_r as usize, dest_c as usize);
+                                }
                                 let row = dest_r;
                                 let col = dest_c;
                                 loop {
-                                    let mut legal = false;
-                                    for ind in 0..4 {
-                                        let new_r = row as i8 + dr[ind];
-                                        let new_c = col as i8 + dc[ind];
-                                        let dest_r = row as i8 + 2 * dr[ind];
-                                        let dest_c = col as i8 + 2 * dc[ind];
-                                        if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
-                                            let new_r = new_r as u8;
-                                            let new_c = new_c as u8;
-                                            let dest_r = dest_r as u8;
-                                            let dest_c = dest_c as u8;
-                                            if state.is_crowned(row as usize, col as usize) == Some(true) || dir < 2 {
-                                                if state.get_color(new_r as usize, new_c as usize) == Some(false) && state.get_board(dest_r as usize, dest_c as usize) == None {
-                                                    legal = true;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if !legal {
+                                    let vec = dfs(&state, &(row as usize), &(col as usize));
+                                    if vec.is_empty() {
                                         break;
                                     }
+                                    if vec[0] == state {
+                                        break;
+                                    }
+                                    println!("{state}");
                                     println!("Enter the direction you would like to move this piece: (0 = up and left, 1 = up and right, 2 = down and left, 3 = down and right)");
                                     let mut dir = String::new();
                                     io::stdin().read_line(&mut dir).expect("Failed to read input.");
@@ -445,6 +364,9 @@ fn main() {
                                                 state.set_board(dest_r as usize, dest_c as usize, state.get_board(row as usize, col as usize));
                                                 state.set_board(new_r as usize, new_c as usize, None);
                                                 state.set_board(row as usize, col as usize, None);
+                                                if dest_r == 0 && state.is_crowned(dest_r as usize, dest_c as usize) == Some(false) {
+                                                    state.toggle_crown(dest_r as usize, dest_c as usize);
+                                                }
                                                 continue;
                                             }
                                         }
@@ -466,6 +388,9 @@ fn main() {
                         if state.get_board(new_r as usize, new_c as usize) == None {
                             state.set_board(new_r as usize, new_c as usize, state.get_board(row as usize, col as usize));
                             state.set_board(row as usize, col as usize, None);
+                            if new_r == 7 && state.is_crowned(new_r as usize, new_c as usize) == Some(false) {
+                                state.toggle_crown(new_r as usize, new_c as usize);
+                            }
                             state.color = true;
                             state.player = true;
                             break;
@@ -481,31 +406,20 @@ fn main() {
                                 state.set_board(row as usize, col as usize, None);
                                 state.color = true;
                                 state.player = true;
+                                if dest_r == 7 && state.is_crowned(dest_r as usize, dest_c as usize) == Some(false) {
+                                    state.toggle_crown(dest_r as usize, dest_c as usize);
+                                }
                                 let row = dest_r;
                                 let col = dest_c;
                                 loop {
-                                    let mut legal = false;
-                                    for ind in 0..4 {
-                                        let new_r = row as i8 + dr[ind];
-                                        let new_c = col as i8 + dc[ind];
-                                        let dest_r = row as i8 + 2 * dr[ind];
-                                        let dest_c = col as i8 + 2 * dc[ind];
-                                        if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
-                                            let new_r = new_r as u8;
-                                            let new_c = new_c as u8;
-                                            let dest_r = dest_r as u8;
-                                            let dest_c = dest_c as u8;
-                                            if state.is_crowned(row as usize, col as usize) == Some(true) || dir > 1 {
-                                                if state.get_color(new_r as usize, new_c as usize) == Some(true) && state.get_board(dest_r as usize, dest_c as usize) == None {
-                                                    legal = true;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if !legal {
+                                    let vec = dfs(&state, &(row as usize), &(col as usize));
+                                    if vec.is_empty() {
                                         break;
                                     }
+                                    if vec[0] == state {
+                                        break;
+                                    }
+                                    println!("{state}");
                                     println!("Enter the direction you would like to move this piece: (0 = up and left, 1 = up and right, 2 = down and left, 3 = down and right)");
                                     let mut dir = String::new();
                                     io::stdin().read_line(&mut dir).expect("Failed to read input.");
@@ -524,6 +438,9 @@ fn main() {
                                                 state.set_board(dest_r as usize, dest_c as usize, state.get_board(row as usize, col as usize));
                                                 state.set_board(new_r as usize, new_c as usize, None);
                                                 state.set_board(row as usize, col as usize, None);
+                                                if dest_r == 7 && state.is_crowned(dest_r as usize, dest_c as usize) == Some(false) {
+                                                    state.toggle_crown(dest_r as usize, dest_c as usize);
+                                                }
                                                 continue;
                                             }
                                         }

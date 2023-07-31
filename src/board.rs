@@ -75,6 +75,21 @@ impl State {
     pub fn set_board(&mut self, row: usize, col: usize, val: Option<Piece>) {
         self.board[row][col] = val;
     }
+    pub fn toggle_crown(&mut self, row: usize, col: usize) {
+        let piece = self.get_board(row, col);
+        if piece == Some(Piece::Black(false)) {
+            self.set_board(row, col, Some(Piece::Black(true)));
+        }
+        else if piece == Some(Piece::Black(true)) {
+            self.set_board(row, col, Some(Piece::Black(false)));
+        }
+        else if piece == Some(Piece::White(false)) {
+            self.set_board(row, col, Some(Piece::White(true)));
+        }
+        else if piece == Some(Piece::White(true)) {
+            self.set_board(row, col, Some(Piece::White(false)));
+        }
+    }
 }
 impl Display for State {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -104,7 +119,7 @@ impl Default for State {
         }
         for row in 5..8 {
             for col in 0..8 {
-                if row % 2 == col % 2 {
+                if row % 2 != col % 2 {
                     brd[row][col] = Some(Piece::Black(bool::from(false)));
                 }
             }
