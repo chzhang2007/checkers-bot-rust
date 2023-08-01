@@ -34,6 +34,18 @@ impl State {
     pub fn get_board(&self, row: usize, col: usize) -> Option<Piece> {
         self.board[row][col]
     }
+    pub fn board_eq(&self, state: State) -> bool {
+        let mut same = true;
+        for row in 0..8 {
+            for col in 0..8 {
+                if self.get_board(row, col) != state.get_board(row, col) {
+                    same = false;
+                    break;
+                }
+            } 
+        }
+        same
+    }
     pub fn get_color(&self, row: usize, col: usize) -> Option<bool> {
         let piece = self.get_board(row, col);
         match piece {
