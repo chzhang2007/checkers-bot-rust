@@ -118,40 +118,20 @@ fn eval(state: &State) -> i64 {
             if state.get_color(row, col) == None {
                 continue;
             }
-            if state.color {
-                if state.get_color(row, col) == Some(true) {
-                    if state.is_crowned(row, col) == Some(true) {
-                        score += 10;
-                    }
-                    else {
-                        score += 8 - (row as i64);
-                    }
+            if state.get_color(row, col) == Some(true) {
+                if state.is_crowned(row, col) == Some(true) {
+                    score += 12;
                 }
                 else {
-                    if state.is_crowned(row, col) == Some(true) {
-                        score -= 10;
-                    }
-                    else {
-                        score -= row as i64;
-                    }                
+                    score += 8 - row as i64;
                 }
             }
-            else if !state.color {
-                if state.get_color(row, col) == Some(false) {
-                    if state.is_crowned(row, col) == Some(true) {
-                        score += 10;
-                    }
-                    else {
-                        score += row as i64;
-                    }
+            else if state.get_color(row, col) == Some(false) {
+                if state.is_crowned(row, col) == Some(true) {
+                    score -= 12;
                 }
                 else {
-                    if state.is_crowned(row, col) == Some(true) {
-                        score += 10;
-                    }
-                    else {
-                        score += 8 - (row as i64);
-                    }      
+                    score -= row as i64;
                 }
             }
         }
@@ -162,7 +142,7 @@ fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max play
     let state: State = *state1;
     let mut new_state = state;
     let mut val: i64 = 0;
-    if *depth == 5 || terminal(&state) != None {
+    if *depth == 7 || terminal(&state) != None {
         return (state, eval(&state));
     }
     let mut jump = false;
