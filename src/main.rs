@@ -3,27 +3,6 @@ use rand::Rng;
 use crate::board::{Piece, State};
 mod board;
 
-fn terminal(state: &State) -> Option<bool> { //not terminal = None, black wins = Some(true), white wins = Some(false)
-    let mut b: bool = false;
-    let mut w: bool = false;
-    for row in 0..8 {
-        for col in 0..8 {
-            if state.get_color(row, col) == Some(true) {
-                b = true;
-            }
-            else if state.get_color(row, col) == Some(false) {
-                w = true;
-            }
-        }
-    }
-    if !b {
-        return Some(false);
-    }
-    else if !w {
-        return Some(true);
-    }
-    return None;
-}
 fn dfs(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
     let mut state = *state1;
     let row = *row1;
@@ -74,8 +53,8 @@ fn dfs(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
 fn children(state1: &State, row1: &usize, col1: &usize, dfs_only: bool) -> Vec<State> {
     let mut vec: Vec<State> = Vec::new();
     let mut state: State = *state1;
-    let mut row: usize = *row1;
-    let mut col: usize = *col1;
+    let row: usize = *row1;
+    let col: usize = *col1;
     let dr: [i8; 4] = [-1, -1, 1, 1];
     let dc: [i8; 4] = [-1, 1, -1, 1];
     let v: Vec<State> = dfs(&state, &row, &col);
@@ -111,8 +90,41 @@ fn children(state1: &State, row1: &usize, col1: &usize, dfs_only: bool) -> Vec<S
     }
     return vec;
 }
+fn terminal(state: &State) -> Option<bool> { //not terminal = None, black wins = Some(true), white wins = Some(false)
+    let mut b: bool = false;
+    let mut w: bool = false;
+    for row in 0..8 {
+        for col in 0..8 {
+            if state.get_color(row, col) == Some(true) {
+                let vec = children(&state, &row, &col, false);
+                if !vec.is_empty() {
+                    b = true;
+                }
+            }
+            else if state.get_color(row, col) == Some(false) {
+                let vec = children(&state, &row, &col, false);
+                if !vec.is_empty() {
+                    w = true;
+                }
+            }
+        }
+    }
+    if !b {
+        return Some(false);
+    }
+    else if !w {
+        return Some(true);
+    }
+    return None;
+}
 fn eval(state: &State) -> i64 {
     let mut score: i64 = 0;
+    if terminal(state) == Some(true) {
+        return 10000;
+    }
+    else if terminal(state) == Some(false) {
+        return -10000;
+    }
     for row in 0..8 {
         for col in 0..8 {
             if state.get_color(row, col) == None {
@@ -120,18 +132,18 @@ fn eval(state: &State) -> i64 {
             }
             if state.get_color(row, col) == Some(true) {
                 if state.is_crowned(row, col) == Some(true) {
-                    score += 12;
+                    score += 30;
                 }
                 else {
-                    score += 8 - row as i64;
+                    score += 20 + (7 - row as i64);
                 }
             }
             else if state.get_color(row, col) == Some(false) {
                 if state.is_crowned(row, col) == Some(true) {
-                    score -= 12;
+                    score -= 30;
                 }
                 else {
-                    score -= row as i64;
+                    score -= 20 + row as i64;
                 }
             }
         }
@@ -141,13 +153,15 @@ fn eval(state: &State) -> i64 {
 fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max player = black, min player = white
     let state: State = *state1;
     let mut new_state = state;
-    let mut val: i64 = 0;
-    if *depth == 7 || terminal(&state) != None {
+    if *depth == 5 || terminal(&state) != None {
         return (state, eval(&state));
     }
     let mut jump = false;
     for row in 0..8 {
         for col in 0..8 {
+            if state.get_color(row, col) != Some(state.color) {
+                continue;
+            }
             let vec = children(&state, &row, &col, true);
             if !vec.is_empty() {
                 jump = true;
@@ -158,26 +172,28 @@ fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max play
             break;
         }
     }
+    println!("{}", jump);
     if state.color == true { //max player
-        val = -1000000000;
+        let mut val = -1000000000;
         for row in 0..8 {
             for col in 0..8 {
                 if state.get_color(row, col) == Some(true) {
                     let vec = children(&state, &row, &col, jump);
-                    for mut i in vec {
-                        if state.board_eq(i) {
+                    for i in &vec {
+                        if state.board_eq(*i) {
                             continue;
                         }
-                        i.player = !state.player;
+                        let mut temp = *i;
+                        temp.player = !state.player;
                         if *same {
-                            i.color = i.player;
+                            temp.color = i.player;
                         }
                         else {
-                            i.color = !i.player;
+                            temp.color = !i.player;
                         }
-                        let tup = minimax(&i, &(depth + 1), &same);
+                        let tup = minimax(&temp, &(depth + 1), &same);
                         if tup.1 > val {
-                            new_state = i;
+                            new_state = temp;
                             val = tup.1;
                         }
                     }
@@ -187,25 +203,26 @@ fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max play
         return (new_state, val);
     }
     else { //min player
-        val = 1000000000;
+        let mut val = 1000000000;
         for row in 0..8 {
             for col in 0..8 {
                 if state.get_color(row, col) == Some(false) {
                     let vec = children(&state, &row, &col, jump);
-                    for mut i in vec {
-                        if state.board_eq(i) {
+                    for i in &vec {
+                        if state.board_eq(*i) {
                             continue;
                         }
-                        i.player = !state.player;
+                        let mut temp = *i;
+                        temp.player = !state.player;
                         if *same {
-                            i.color = i.player;
+                            temp.color = i.player;
                         }
                         else {
-                            i.color = !i.player;
+                            temp.color = !i.player;
                         }
-                        let tup = minimax(&i, &(depth + 1), &same);
+                        let tup = minimax(&temp, &(depth + 1), &same);
                         if tup.1 < val {
-                            new_state = i;
+                            new_state = temp;
                             val = tup.1;
                         }
                     }
@@ -244,7 +261,6 @@ fn main() {
             same = true;
         }
         loop {
-            println!("{} {}", state.color, state.player);
             let end = terminal(&state);
             if end == Some(true) {
                 println!("Black won!");
@@ -258,7 +274,7 @@ fn main() {
             let mut jump = false;
             for r in 0..8 {
                 for c in 0..8 {
-                    if (state.color == true && state.get_color(r, c) == Some(true)) || (state.color == false && state.get_color(r, c) == Some(false)) {
+                    if state.get_color(r, c) == Some(state.color) {
                         let vec = children(&state, &r, &c, false);
                         if !vec.is_empty() {
                             moves = true;
@@ -292,20 +308,19 @@ fn main() {
                     state.color = !state.player;
                 }
                 println!("The computer has made its move.");
+                println!("{}", tup.1);
             }
             else {
-                let mut row = String::new();
-                let mut col = String::new();
                 loop {
                     println!("Enter the row number of the piece you would like to move: (0-7)");
                     let mut row = String::new();
                     io::stdin().read_line(&mut row).expect("Failed to read input.");
-                    let row: u8 = row.trim().parse().expect("Not a number!");
+                    let row: u16 = row.trim().parse().expect("Not a number!");
                     println!("Enter the column number of the piece you would like to move: (0-7)");
                     let mut col = String::new();
                     io::stdin().read_line(&mut col).expect("Failed to read input.");
-                    let col: u8 = col.trim().parse().expect("Not a number!");
-                    if row < 0 || row > 7 || col < 0 || col > 7 {
+                    let col: u16 = col.trim().parse().expect("Not a number!");
+                    if row > 7 || col > 7 {
                         println!("Position out of bounds! Please enter numbers from 0-7.");
                         continue;
                     }
@@ -324,7 +339,7 @@ fn main() {
                     let mut dir = String::new();
                     io::stdin().read_line(&mut dir).expect("Failed to read input.");
                     let dir: u8 = dir.trim().parse().expect("Not a number!");
-                    if dir < 0 || dir > 3 {
+                    if dir > 3 {
                         println!("Please enter a number from 0-3.");
                         continue;
                     }

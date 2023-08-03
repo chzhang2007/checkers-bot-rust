@@ -66,24 +66,6 @@ impl State {
             None => None,
         }
     }
-    pub fn num_black(&self) -> u8 {
-        let mut ans: u8 = 0;
-        for row in 0..8 {
-            for col in 0..8 {
-                ans += ((self.get_color(row, col) == Some(true)) as u8);
-            }
-        }
-        ans
-    }
-    pub fn num_white(&self) -> u8 {
-        let mut ans: u8 = 0;
-        for row in 0..8 {
-            for col in 0..8 {
-                ans += ((self.get_color(row, col) == Some(false)) as u8);
-            }
-        }
-        ans
-    }
     pub fn set_board(&mut self, row: usize, col: usize, val: Option<Piece>) {
         self.board[row][col] = val;
     }
