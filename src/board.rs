@@ -7,21 +7,20 @@ pub enum Piece {
 }
 impl Display for Piece {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self);
-        Ok(())
+        write!(f, "{}", self)
     }
 }
 impl From<Piece> for char {
     fn from(piece: Piece) -> char {
         match piece {
-            Piece::Black(false) => 'B',
-            Piece::Black(true) => 'C',
-            Piece::White(false) => 'W',
-            Piece::White(true) => 'X',
+            Piece::Black(false) => 'b',
+            Piece::Black(true) => 'B',
+            Piece::White(false) => 'w',
+            Piece::White(true) => 'W',
         }
     }
 }
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Eq)]
 pub struct State {
     pub board: [[Option<Piece>; 8]; 8],
     pub color: bool, //black = true, white = false
@@ -33,18 +32,6 @@ impl State {
     }
     pub fn get_board(&self, row: usize, col: usize) -> Option<Piece> {
         self.board[row][col]
-    }
-    pub fn board_eq(&self, state: State) -> bool {
-        let mut same = true;
-        for row in 0..8 {
-            for col in 0..8 {
-                if self.get_board(row, col) != state.get_board(row, col) {
-                    same = false;
-                    break;
-                }
-            } 
-        }
-        same
     }
     pub fn get_color(&self, row: usize, col: usize) -> Option<bool> {
         let piece = self.get_board(row, col);
@@ -124,8 +111,7 @@ impl Display for State {
             }
             board.push('\n');
         }
-        write!(f, "{}", board.iter().collect::<String>());
-        Ok(())
+        write!(f, "{}", board.iter().collect::<String>())
     }
 }
 impl Default for State {
@@ -148,5 +134,20 @@ impl Default for State {
         State { board: brd,
                 color: true,
                 player: true }
+    }
+}
+impl PartialEq for State {
+    fn eq(&self, other: &Self) -> bool {
+        for row in 0..8 {
+            for col in 0..8 {
+                if self.get_board(row, col) != other.get_board(row, col) {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
     }
 }

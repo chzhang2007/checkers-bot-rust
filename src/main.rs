@@ -59,7 +59,7 @@ fn children(state1: &State, row1: &usize, col1: &usize, dfs_only: bool) -> Vec<S
     let dc: [i8; 4] = [-1, 1, -1, 1];
     let v: Vec<State> = dfs(&state, &row, &col);
     for val in &v {
-        if !state.board_eq(*val) {
+        if state.ne(val) {
             vec.push(*val);
         }
     }
@@ -179,7 +179,7 @@ fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max play
                 if state.get_color(row, col) == Some(true) {
                     let vec = children(&state, &row, &col, jump);
                     for i in &vec {
-                        if state.board_eq(*i) {
+                        if state.eq(i) {
                             continue;
                         }
                         let mut temp = *i;
@@ -208,7 +208,7 @@ fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max play
                 if state.get_color(row, col) == Some(false) {
                     let vec = children(&state, &row, &col, jump);
                     for i in &vec {
-                        if state.board_eq(*i) {
+                        if state.eq(i) {
                             continue;
                         }
                         let mut temp = *i;
@@ -243,10 +243,11 @@ fn main() {
         }
         println!("{state}");
         println!("_ : empty space");
-        println!("B : uncrowned black checker");
-        println!("C : crowned black checker");
-        println!("W : uncrowned white checker");
-        println!("X : crowned white checker");
+        println!("b : uncrowned black checker");
+        println!("B : crowned black checker");
+        println!("w : uncrowned white checker");
+        println!("W : crowned white checker");
+        println!();
         let rnum: u8 = rand::thread_rng().gen_range(1..=2);
         if rnum == 1 {
             println!("You are playing black.");
@@ -255,6 +256,7 @@ fn main() {
         else {
             println!("You are playing white.");
         }
+        println!();
         if state.color == state.player {
             same = true;
         }
@@ -306,6 +308,7 @@ fn main() {
                     state.color = !state.player;
                 }
                 println!("The computer has made its move.");
+                println!();
             }
             else {
                 loop {
