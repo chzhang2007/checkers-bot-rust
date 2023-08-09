@@ -5,6 +5,7 @@ mod board;
 
 const DR: [i8; 4] = [-1, -1, 1, 1];
 const DC: [i8; 4] = [-1, 1, -1, 1];
+const TERMNUM: i16 = 10000;
 
 fn dfs(state: &State, row: usize, col: usize) -> Vec<State> {
     let mut state = state.clone();
@@ -50,8 +51,8 @@ fn dfs(state: &State, row: usize, col: usize) -> Vec<State> {
     return vec;
 }
 fn children(state: &State, row: usize, col: usize, dfs_only: bool) -> Vec<State> {
-    let mut states: Vec<State> = vec![];
     let mut state = state.clone();
+    let mut states: Vec<State> = vec![];
     let v: Vec<State> = dfs(&state, row, col);
     for val in &v {
         if state.ne(val) {
@@ -112,14 +113,13 @@ fn terminal(state: &State) -> Option<bool> { //not terminal = None, black wins =
     }
     return None;
 }
-fn eval(state: &State) -> i64 {
-    let mut score: i64 = 0;
-    if terminal(state) == Some(true) {
-        return 10000;
+fn eval(state: &State) -> i16 {
+    match terminal(state) {
+        Some(true) => return TERMNUM,
+        Some(false) => return -TERMNUM,
+        None => ()
     }
-    else if terminal(state) == Some(false) {
-        return -10000;
-    }
+    let mut score = 0;
     for row in 0..8 {
         for col in 0..8 {
             if state.get_color(row, col) == None {
@@ -130,7 +130,7 @@ fn eval(state: &State) -> i64 {
                     score += 30;
                 }
                 else {
-                    score += 20 + (7 - row as i64);
+                    score += 20 + (7 - row as i16);
                 }
             }
             else if state.get_color(row, col) == Some(false) {
@@ -138,14 +138,14 @@ fn eval(state: &State) -> i64 {
                     score -= 30;
                 }
                 else {
-                    score -= 20 + row as i64;
+                    score -= 20 + row as i16;
                 }
             }
         }
     }
     score
 }
-fn minimax(state: &State, depth: u8, same: bool) -> (State, i64) { //max player = black, min player = white
+fn minimax(state: &State, depth: u8, same: bool) -> (State, i16) { //max player = black, min player = white
     let state: State = state.clone();
     let mut new_state = state;
     if depth == 5 || terminal(&state) != None {
@@ -168,7 +168,7 @@ fn minimax(state: &State, depth: u8, same: bool) -> (State, i64) { //max player 
         }
     }
     if state.color == true { //max player
-        let mut val = -1000000000;
+        let mut val = -2 * TERMNUM;
         for row in 0..8 {
             for col in 0..8 {
                 if state.get_color(row, col) == Some(true) {
@@ -197,7 +197,7 @@ fn minimax(state: &State, depth: u8, same: bool) -> (State, i64) { //max player 
         return (new_state, val);
     }
     else { //min player
-        let mut val = 1000000000;
+        let mut val = 2 * TERMNUM;
         for row in 0..8 {
             for col in 0..8 {
                 if state.get_color(row, col) == Some(false) {

@@ -109,7 +109,31 @@ impl Display for State {
                 });
                 board.push(' ');
             }
+            board.push(match row {
+                0 => '0',
+                1 => '1',
+                2 => '2',
+                3 => '3',
+                4 => '4',
+                5 => '5',
+                6 => '6',
+                _ => '7'
+            });
             board.push('\n');
+        }
+        board.push(' ');
+        for col in 0..8 {
+            board.push(' ');
+            board.push(match col {
+                0 => '0',
+                1 => '1',
+                2 => '2',
+                3 => '3',
+                4 => '4',
+                5 => '5',
+                6 => '6',
+                _ => '7'
+            });
         }
         write!(f, "{}", board.iter().collect::<String>())
     }
