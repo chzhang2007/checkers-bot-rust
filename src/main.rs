@@ -172,7 +172,6 @@ fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max play
             break;
         }
     }
-    println!("{}", jump);
     if state.color == true { //max player
         let mut val = -1000000000;
         for row in 0..8 {
@@ -234,19 +233,18 @@ fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max play
 }
 fn main() {
     loop {
-        println!("Hello! Please enter 0 for a link to the rules, or enter any other number to start playing!");
+        println!("Hello! Please enter 0 for a link to the rules, or enter anything else to start playing!");
         let mut state = State::new();
-        let mut inp = String::new();
         let mut same = false;
+        let mut inp = String::new();
         io::stdin().read_line(&mut inp).expect("Failed to read input.");
-        let inp: u8 = inp.trim().parse().expect("Not a number!");
-        if inp == 0 {
+        if inp.trim().len() == 1 && inp.trim().chars().next().unwrap() == '0' {
             println!("You can find the rules at https://www.wikihow.com/Play-Checkers.");
         }
         println!("{state}");
         println!("_ : empty space");
         println!("B : uncrowned black checker");
-        println!("C: crowned black checker");
+        println!("C : crowned black checker");
         println!("W : uncrowned white checker");
         println!("X : crowned white checker");
         let rnum: u8 = rand::thread_rng().gen_range(1..=2);
@@ -308,22 +306,41 @@ fn main() {
                     state.color = !state.player;
                 }
                 println!("The computer has made its move.");
-                println!("{}", tup.1);
             }
             else {
                 loop {
                     println!("Enter the row number of the piece you would like to move: (0-7)");
                     let mut row = String::new();
                     io::stdin().read_line(&mut row).expect("Failed to read input.");
-                    let row: u16 = row.trim().parse().expect("Not a number!");
+                    if row.trim().len() != 1 {
+                        println!("Invalid input!");
+                        continue;
+                    }
+                    let row: char = row.trim().chars().next().unwrap();
+                    if row == 'q' {
+                        panic!("Quit");
+                    }
+                    if row < '0' || row > '7' {
+                        println!("Invalid input!");
+                        continue;
+                    }
+                    let row: u8 = row as u8 - '0' as u8;
                     println!("Enter the column number of the piece you would like to move: (0-7)");
                     let mut col = String::new();
                     io::stdin().read_line(&mut col).expect("Failed to read input.");
-                    let col: u16 = col.trim().parse().expect("Not a number!");
-                    if row > 7 || col > 7 {
-                        println!("Position out of bounds! Please enter numbers from 0-7.");
+                    if col.trim().len() != 1 {
+                        println!("Invalid input!");
                         continue;
                     }
+                    let col: char = col.trim().chars().next().unwrap();
+                    if col == 'q' {
+                        panic!("Quit");
+                    }
+                    if col < '0' || col > '7' {
+                        println!("Invalid input!");
+                        continue;
+                    }
+                    let col: u8 = col as u8 - '0' as u8;
                     if state.get_color(row as usize, col as usize) != Some(state.color) {
                         println!("The selected space does not contain one of your pieces. Please select a different space.");
                         continue;
@@ -338,11 +355,19 @@ fn main() {
                     println!("Enter the direction you would like to move this piece: (0 = up and left, 1 = up and right, 2 = down and left, 3 = down and right)");
                     let mut dir = String::new();
                     io::stdin().read_line(&mut dir).expect("Failed to read input.");
-                    let dir: u8 = dir.trim().parse().expect("Not a number!");
-                    if dir > 3 {
-                        println!("Please enter a number from 0-3.");
+                    if dir.trim().len() != 1 {
+                        println!("Invalid input!");
                         continue;
                     }
+                    let dir: char = dir.trim().chars().next().unwrap();
+                    if dir == 'q' {
+                        panic!("Quit");
+                    }
+                    if dir < '0' || dir > '3' {
+                        println!("Invalid input!");
+                        continue;
+                    }
+                    let dir: u8 = dir as u8 - '0' as u8;
                     let new_r = row as i8 + dr[dir as usize];
                     let new_c = col as i8 + dc[dir as usize];
                     if new_r < 0 || new_r > 7 || new_c < 0 || new_c > 7 {
@@ -393,7 +418,19 @@ fn main() {
                                     println!("Enter the direction you would like to move this piece: (0 = up and left, 1 = up and right, 2 = down and left, 3 = down and right)");
                                     let mut dir = String::new();
                                     io::stdin().read_line(&mut dir).expect("Failed to read input.");
-                                    let dir: u8 = dir.trim().parse().expect("Not a number!");
+                                    if dir.trim().len() != 1 {
+                                        println!("Invalid input!");
+                                        continue;
+                                    }
+                                    let dir: char = dir.trim().chars().next().unwrap();
+                                    if dir == 'q' {
+                                        panic!("Quit");
+                                    }
+                                    if dir < '0' || dir > '3' {
+                                        println!("Invalid input!");
+                                        continue;
+                                    }
+                                    let dir: u8 = dir as u8 - '0' as u8;
                                     let new_r = row as i8 + dr[dir as usize];
                                     let new_c = col as i8 + dc[dir as usize];
                                     let dest_r = row as i8 + 2 * dr[dir as usize];
@@ -470,7 +507,19 @@ fn main() {
                                     println!("Enter the direction you would like to move this piece: (0 = up and left, 1 = up and right, 2 = down and left, 3 = down and right)");
                                     let mut dir = String::new();
                                     io::stdin().read_line(&mut dir).expect("Failed to read input.");
-                                    let dir: u8 = dir.trim().parse().expect("Not a number!");
+                                    if dir.trim().len() != 1 {
+                                        println!("Invalid input!");
+                                        continue;
+                                    }
+                                    let dir: char = dir.trim().chars().next().unwrap();
+                                    if dir == 'q' {
+                                        panic!("Quit");
+                                    }
+                                    if dir < '0' || dir > '3' {
+                                        println!("Invalid input!");
+                                        continue;
+                                    }
+                                    let dir: u8 = dir as u8 - '0' as u8;
                                     let new_r = row as i8 + dr[dir as usize];
                                     let new_c = col as i8 + dc[dir as usize];
                                     let dest_r = row as i8 + 2 * dr[dir as usize];
@@ -509,11 +558,10 @@ fn main() {
             }
             println!("{state}");
         }
-        println!("Enter 0 to play again, or enter any other number to quit.");
+        println!("Enter 0 to play again, or enter anything else to quit.");
         let mut inp = String::new();
         io::stdin().read_line(&mut inp).expect("Failed to read input.");
-        let inp: u8 = inp.trim().parse().expect("Not a number!");
-        if inp != 0 {
+        if inp.trim().len() != 1 || inp.trim().chars().next().unwrap() != '0' {
             println!("You have quit the game.");
             break;
         }

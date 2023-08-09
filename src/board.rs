@@ -88,12 +88,39 @@ impl State {
 impl Display for State {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut board = vec![];
+        board.push(' ');
+        for col in 0..8 {
+            board.push(' ');
+            board.push(match col {
+                0 => '0',
+                1 => '1',
+                2 => '2',
+                3 => '3',
+                4 => '4',
+                5 => '5',
+                6 => '6',
+                _ => '7'
+            });
+        }
+        board.push('\n');
         for row in 0..8 {
+            board.push(match row {
+                0 => '0',
+                1 => '1',
+                2 => '2',
+                3 => '3',
+                4 => '4',
+                5 => '5',
+                6 => '6',
+                _ => '7'
+            });
+            board.push(' ');
             for col in 0..8 {
                 board.push(match self.get_board(row, col) {
                     Some(piece) => piece.into(),
                     None => '_'
                 });
+                board.push(' ');
             }
             board.push('\n');
         }
