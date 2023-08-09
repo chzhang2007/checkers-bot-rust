@@ -3,19 +3,18 @@ use rand::Rng;
 use crate::board::{Piece, State};
 mod board;
 
-fn dfs(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
-    let mut state = *state1;
-    let row = *row1;
-    let col = *col1;
-    let dr: [i8; 4] = [-1, -1, 1, 1];
-    let dc: [i8; 4] = [-1, 1, -1, 1];
-    let mut vec = Vec::new();
+const DR: [i8; 4] = [-1, -1, 1, 1];
+const DC: [i8; 4] = [-1, 1, -1, 1];
+
+fn dfs(state: &State, row: usize, col: usize) -> Vec<State> {
+    let mut state = state.clone();
+    let mut vec = vec![];
     let mut cont = false;
     for dir in 0..4 {
-        let new_r = row as i8 + dr[dir];
-        let new_c = col as i8 + dc[dir];
-        let dest_r = row as i8 + 2 * dr[dir];
-        let dest_c = col as i8 + 2 * dc[dir];
+        let new_r = row as i8 + DR[dir];
+        let new_c = col as i8 + DC[dir];
+        let dest_r = row as i8 + 2 * DR[dir];
+        let dest_c = col as i8 + 2 * DC[dir];
         if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
             if state.is_crowned(row, col) == Some(true) || (state.get_color(row, col) == Some(true) && dir < 2) || (state.get_color(row, col) == Some(false) && dir > 1) {
                 if ((state.get_color(row, col) == Some(true) && state.get_color(new_r as usize, new_c as usize) == Some(false)) || (state.get_color(row, col) == Some(false) && state.get_color(new_r as usize, new_c as usize) == Some(true))) && state.get_board(dest_r as usize, dest_c as usize) == None {
@@ -29,7 +28,7 @@ fn dfs(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
                         state.toggle_crown(dest_r as usize, dest_c as usize);
                         crown = true;
                     }
-                    let subvec = dfs(&state, &(dest_r as usize), &(dest_c as usize));
+                    let subvec = dfs(&state, dest_r as usize, dest_c as usize);
                     for val in subvec {
                         vec.push(val);
                     }
@@ -44,29 +43,25 @@ fn dfs(state1: &State, row1: &usize, col1: &usize) -> Vec<State> {
         }
     }
     if !cont {
-        let mut statevec = Vec::new();
+        let mut statevec = vec![];
         statevec.push(state);
         return statevec;
     }
     return vec;
 }
-fn children(state1: &State, row1: &usize, col1: &usize, dfs_only: bool) -> Vec<State> {
-    let mut vec: Vec<State> = Vec::new();
-    let mut state: State = *state1;
-    let row: usize = *row1;
-    let col: usize = *col1;
-    let dr: [i8; 4] = [-1, -1, 1, 1];
-    let dc: [i8; 4] = [-1, 1, -1, 1];
-    let v: Vec<State> = dfs(&state, &row, &col);
+fn children(state: &State, row: usize, col: usize, dfs_only: bool) -> Vec<State> {
+    let mut states: Vec<State> = vec![];
+    let mut state = state.clone();
+    let v: Vec<State> = dfs(&state, row, col);
     for val in &v {
         if state.ne(val) {
-            vec.push(*val);
+            states.push(*val);
         }
     }
     if !dfs_only {
         for dir in 0..4 {
-            let new_r = row as i8 + dr[dir];
-            let new_c = col as i8 + dc[dir];
+            let new_r = row as i8 + DR[dir];
+            let new_c = col as i8 + DC[dir];
             let mut crown = false;
             if new_r >= 0 && new_r < 8 && new_c >= 0 && new_c < 8 {
                 if state.is_crowned(row, col) == Some(true) || (state.get_color(row, col) == Some(true) && dir < 2) || (state.get_color(row, col) == Some(false) && dir > 1) {
@@ -77,7 +72,7 @@ fn children(state1: &State, row1: &usize, col1: &usize, dfs_only: bool) -> Vec<S
                             state.toggle_crown(new_r as usize, new_c as usize);
                             crown = true;
                         }
-                        vec.push(state.clone());
+                        states.push(state.clone());
                         state.set_board(row, col, state.get_board(new_r as usize, new_c as usize));
                         state.set_board(new_r as usize, new_c as usize, None);
                         if crown {
@@ -88,7 +83,7 @@ fn children(state1: &State, row1: &usize, col1: &usize, dfs_only: bool) -> Vec<S
             }
         }
     }
-    return vec;
+    return states;
 }
 fn terminal(state: &State) -> Option<bool> { //not terminal = None, black wins = Some(true), white wins = Some(false)
     let mut b: bool = false;
@@ -96,13 +91,13 @@ fn terminal(state: &State) -> Option<bool> { //not terminal = None, black wins =
     for row in 0..8 {
         for col in 0..8 {
             if state.get_color(row, col) == Some(true) {
-                let vec = children(&state, &row, &col, false);
+                let vec = children(&state, row, col, false);
                 if !vec.is_empty() {
                     b = true;
                 }
             }
             else if state.get_color(row, col) == Some(false) {
-                let vec = children(&state, &row, &col, false);
+                let vec = children(&state, row, col, false);
                 if !vec.is_empty() {
                     w = true;
                 }
@@ -150,10 +145,10 @@ fn eval(state: &State) -> i64 {
     }
     score
 }
-fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max player = black, min player = white
-    let state: State = *state1;
+fn minimax(state: &State, depth: u8, same: bool) -> (State, i64) { //max player = black, min player = white
+    let state: State = state.clone();
     let mut new_state = state;
-    if *depth == 5 || terminal(&state) != None {
+    if depth == 5 || terminal(&state) != None {
         return (state, eval(&state));
     }
     let mut jump = false;
@@ -162,7 +157,7 @@ fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max play
             if state.get_color(row, col) != Some(state.color) {
                 continue;
             }
-            let vec = children(&state, &row, &col, true);
+            let vec = children(&state, row, col, true);
             if !vec.is_empty() {
                 jump = true;
                 break;
@@ -177,20 +172,20 @@ fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max play
         for row in 0..8 {
             for col in 0..8 {
                 if state.get_color(row, col) == Some(true) {
-                    let vec = children(&state, &row, &col, jump);
+                    let vec = children(&state, row, col, jump);
                     for i in &vec {
                         if state.eq(i) {
                             continue;
                         }
                         let mut temp = *i;
                         temp.player = !state.player;
-                        if *same {
+                        if same {
                             temp.color = i.player;
                         }
                         else {
                             temp.color = !i.player;
                         }
-                        let tup = minimax(&temp, &(depth + 1), &same);
+                        let tup = minimax(&temp, depth + 1, same);
                         if tup.1 > val {
                             new_state = temp;
                             val = tup.1;
@@ -206,20 +201,20 @@ fn minimax(state1: &State, depth: &u8, same: &bool) -> (State, i64) { //max play
         for row in 0..8 {
             for col in 0..8 {
                 if state.get_color(row, col) == Some(false) {
-                    let vec = children(&state, &row, &col, jump);
+                    let vec = children(&state, row, col, jump);
                     for i in &vec {
                         if state.eq(i) {
                             continue;
                         }
                         let mut temp = *i;
                         temp.player = !state.player;
-                        if *same {
+                        if same {
                             temp.color = i.player;
                         }
                         else {
                             temp.color = !i.player;
                         }
-                        let tup = minimax(&temp, &(depth + 1), &same);
+                        let tup = minimax(&temp, depth + 1, same);
                         if tup.1 < val {
                             new_state = temp;
                             val = tup.1;
@@ -275,11 +270,11 @@ fn main() {
             for r in 0..8 {
                 for c in 0..8 {
                     if state.get_color(r, c) == Some(state.color) {
-                        let vec = children(&state, &r, &c, false);
+                        let vec = children(&state, r, c, false);
                         if !vec.is_empty() {
                             moves = true;
                         }
-                        let vec = children(&state, &r, &c, true);
+                        let vec = children(&state, r, c, true);
                         if !vec.is_empty() {
                             jump = true;
                             break;
@@ -298,7 +293,7 @@ fn main() {
                 println!("Black won!");
             }
             if state.player {
-                let tup = minimax(&state, &0, &same);
+                let tup = minimax(&state, 0, same);
                 state = tup.0;
                 state.player = false;
                 if same {
@@ -348,13 +343,11 @@ fn main() {
                         println!("The selected space does not contain one of your pieces. Please select a different space.");
                         continue;
                     }
-                    let vec = children(&state, &(row as usize), &(col as usize), false);
+                    let vec = children(&state, row as usize, col as usize, false);
                     if vec.is_empty() {
                         println!("The selected space does not have any legal moves. Please select a different space.");
                         continue;
                     }
-                    let dr: [i8; 4] = [-1, -1, 1, 1];
-                    let dc: [i8; 4] = [-1, 1, -1, 1];
                     println!("Enter the direction you would like to move this piece: (0 = up and left, 1 = up and right, 2 = down and left, 3 = down and right)");
                     let mut dir = String::new();
                     io::stdin().read_line(&mut dir).expect("Failed to read input.");
@@ -371,8 +364,8 @@ fn main() {
                         continue;
                     }
                     let dir: u8 = dir as u8 - '0' as u8;
-                    let new_r = row as i8 + dr[dir as usize];
-                    let new_c = col as i8 + dc[dir as usize];
+                    let new_r = row as i8 + DR[dir as usize];
+                    let new_c = col as i8 + DC[dir as usize];
                     if new_r < 0 || new_r > 7 || new_c < 0 || new_c > 7 {
                         println!("The space you are trying to move to is out of range. Please select a different move.");
                         continue;
@@ -396,8 +389,8 @@ fn main() {
                             }
                             break;
                         }
-                        let dest_r = row as i8 + 2 * dr[dir as usize];
-                        let dest_c = col as i8 + 2 * dc[dir as usize];
+                        let dest_r = row as i8 + 2 * DR[dir as usize];
+                        let dest_c = col as i8 + 2 * DC[dir as usize];
                         if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
                             let dest_r = dest_r as u8;
                             let dest_c = dest_c as u8;
@@ -413,7 +406,7 @@ fn main() {
                                 let row = dest_r;
                                 let col = dest_c;
                                 loop {
-                                    let vec = children(&state, &(row as usize), &(col as usize), true);
+                                    let vec = children(&state, row as usize, col as usize, true);
                                     if vec.is_empty() {
                                         break;
                                     }
@@ -434,10 +427,10 @@ fn main() {
                                         continue;
                                     }
                                     let dir: u8 = dir as u8 - '0' as u8;
-                                    let new_r = row as i8 + dr[dir as usize];
-                                    let new_c = col as i8 + dc[dir as usize];
-                                    let dest_r = row as i8 + 2 * dr[dir as usize];
-                                    let dest_c = col as i8 + 2 * dc[dir as usize];
+                                    let new_r = row as i8 + DR[dir as usize];
+                                    let new_c = col as i8 + DC[dir as usize];
+                                    let dest_r = row as i8 + 2 * DR[dir as usize];
+                                    let dest_c = col as i8 + 2 * DC[dir as usize];
                                     if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
                                         let new_r = new_r as u8;
                                         let new_c = new_c as u8;
@@ -485,8 +478,8 @@ fn main() {
                             }
                             break;
                         }
-                        let dest_r = row as i8 + 2 * dr[dir as usize];
-                        let dest_c = col as i8 + 2 * dc[dir as usize];
+                        let dest_r = row as i8 + 2 * DR[dir as usize];
+                        let dest_c = col as i8 + 2 * DC[dir as usize];
                         if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
                             let dest_r = dest_r as u8;
                             let dest_c = dest_c as u8;
@@ -502,7 +495,7 @@ fn main() {
                                 let row = dest_r;
                                 let col = dest_c;
                                 loop {
-                                    let vec = children(&state, &(row as usize), &(col as usize), true);
+                                    let vec = children(&state, row as usize, col as usize, true);
                                     if vec.is_empty() {
                                         break;
                                     }
@@ -523,10 +516,10 @@ fn main() {
                                         continue;
                                     }
                                     let dir: u8 = dir as u8 - '0' as u8;
-                                    let new_r = row as i8 + dr[dir as usize];
-                                    let new_c = col as i8 + dc[dir as usize];
-                                    let dest_r = row as i8 + 2 * dr[dir as usize];
-                                    let dest_c = col as i8 + 2 * dc[dir as usize];
+                                    let new_r = row as i8 + DR[dir as usize];
+                                    let new_c = col as i8 + DC[dir as usize];
+                                    let dest_r = row as i8 + 2 * DR[dir as usize];
+                                    let dest_c = col as i8 + 2 * DC[dir as usize];
                                     if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
                                         let new_r = new_r as u8;
                                         let new_c = new_c as u8;
