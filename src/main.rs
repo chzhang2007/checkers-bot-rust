@@ -5,7 +5,7 @@ mod board;
 
 const DR: [i8; 4] = [-1, -1, 1, 1];
 const DC: [i8; 4] = [-1, 1, -1, 1];
-const TERMNUM: i16 = 10000;
+const TERMNUM: i32 = 100000;
 
 fn dfs(state: &State, row: usize, col: usize) -> Vec<State> {
     let mut state = state.clone();
@@ -113,7 +113,7 @@ fn terminal(state: &State) -> Option<bool> { //not terminal = None, black wins =
     }
     return None;
 }
-fn eval(state: &State) -> i16 {
+fn eval(state: &State) -> i32 {
     match terminal(state) {
         Some(true) => return TERMNUM,
         Some(false) => return -TERMNUM,
@@ -127,28 +127,58 @@ fn eval(state: &State) -> i16 {
             }
             if state.get_color(row, col) == Some(true) {
                 if state.is_crowned(row, col) == Some(true) {
-                    score += 30;
+                    score += 50;
                 }
                 else {
-                    score += 20 + (7 - row as i16);
+                    score += 30 + 2 * (7 - row as i32);
+                }
+                for dir in 0..4 {
+                    let new_r = row as i8 + DR[dir];
+                    let new_c = col as i8 + DC[dir];
+                    if new_r >= 0 && new_r < 8 && new_c >= 0 && new_c < 8 {
+                        if state.get_color(new_r as usize, new_c as usize) == Some(true) {
+                            score += 3;
+                        }
+                        else if state.get_color(new_r as usize, new_c as usize) == Some(false) && (state.is_crowned(new_r as usize, new_c as usize) == Some(true) || dir < 2) {
+                            score -= 5;
+                        }
+                    }
+                    else {
+                        score += 3;
+                    }
                 }
             }
             else if state.get_color(row, col) == Some(false) {
                 if state.is_crowned(row, col) == Some(true) {
-                    score -= 30;
+                    score -= 50;
                 }
                 else {
-                    score -= 20 + row as i16;
+                    score -= 30 + 2 * row as i32;
+                }
+                for dir in 0..4 {
+                    let new_r = row as i8 + DR[dir];
+                    let new_c = col as i8 + DC[dir];
+                    if new_r >= 0 && new_r < 8 && new_c >= 0 && new_c < 8 {
+                        if state.get_color(new_r as usize, new_c as usize) == Some(true) {
+                            score -= 3;
+                        }
+                        else if state.get_color(new_r as usize, new_c as usize) == Some(false) && (state.is_crowned(new_r as usize, new_c as usize) == Some(true) || dir > 1) {
+                            score += 5;
+                        }
+                    }
+                    else {
+                        score -= 3;
+                    }
                 }
             }
         }
     }
     score
 }
-fn minimax(state: &State, depth: u8, same: bool) -> (State, i16) { //max player = black, min player = white
+fn minimax(state: &State, depth: u8, same: bool, term: u8) -> (State, i32) { //max player = black, min player = white
     let state: State = state.clone();
     let mut new_state = state;
-    if depth == 5 || terminal(&state) != None {
+    if depth == term || terminal(&state) != None {
         return (state, eval(&state));
     }
     let mut jump = false;
@@ -185,7 +215,7 @@ fn minimax(state: &State, depth: u8, same: bool) -> (State, i16) { //max player 
                         else {
                             temp.color = !i.player;
                         }
-                        let tup = minimax(&temp, depth + 1, same);
+                        let tup = minimax(&temp, depth + 1, same, term);
                         if tup.1 > val {
                             new_state = temp;
                             val = tup.1;
@@ -214,7 +244,7 @@ fn minimax(state: &State, depth: u8, same: bool) -> (State, i16) { //max player 
                         else {
                             temp.color = !i.player;
                         }
-                        let tup = minimax(&temp, depth + 1, same);
+                        let tup = minimax(&temp, depth + 1, same, term);
                         if tup.1 < val {
                             new_state = temp;
                             val = tup.1;
@@ -227,14 +257,42 @@ fn minimax(state: &State, depth: u8, same: bool) -> (State, i16) { //max player 
     }
 }
 fn main() {
+    println!("Hello! Please enter 0 for a link to the rules, or enter anything else to start playing!");
+    let mut inp = String::new();
+    io::stdin().read_line(&mut inp).expect("Failed to read input.");
+    if inp.trim().len() == 1 && inp.trim().chars().next().unwrap() == '0' {
+        println!("You can find the rules at https://www.wikihow.com/Play-Checkers.");
+    }
+    else if inp.trim().len() == 1 && inp.trim().chars().next().unwrap() == 'q' {
+        panic!("Quit");
+    }
     loop {
-        println!("Hello! Please enter 0 for a link to the rules, or enter anything else to start playing!");
         let mut state = State::new();
         let mut same = false;
+        println!("Please enter your desired difficulty: 0 (easiest) to 2 (hardest). Higher difficulty bots will take longer to make moves.");
         let mut inp = String::new();
         io::stdin().read_line(&mut inp).expect("Failed to read input.");
-        if inp.trim().len() == 1 && inp.trim().chars().next().unwrap() == '0' {
-            println!("You can find the rules at https://www.wikihow.com/Play-Checkers.");
+        if inp.trim().len() != 1 {
+            println!("Invalid input!");
+            continue;
+        }
+        let inp: char = inp.trim().chars().next().unwrap();
+        let term: u8;
+        if inp == 'q' {
+            panic!("Quit");
+        }
+        else if inp == '0' {
+            term = 2;
+        }
+        else if inp == '1' {
+            term = 4;
+        }
+        else if inp == '2' {
+            term = 7;
+        }
+        else {
+            println!("Invalid input!");
+            continue;
         }
         println!("{state}");
         println!("_ : empty space");
@@ -293,7 +351,10 @@ fn main() {
                 println!("Black won!");
             }
             if state.player {
-                let tup = minimax(&state, 0, same);
+                if term == 7 {
+                    println!("Please wait for the computer to make its move...");
+                }
+                let tup = minimax(&state, 0, same, term);
                 state = tup.0;
                 state.player = false;
                 if same {
