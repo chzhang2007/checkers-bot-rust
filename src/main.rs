@@ -127,10 +127,10 @@ fn eval(state: &State) -> i32 {
             }
             if state.get_color(row, col) == Some(true) {
                 if state.is_crowned(row, col) == Some(true) {
-                    score += 50;
+                    score += 100;
                 }
                 else {
-                    score += 30 + 2 * (7 - row as i32);
+                    score += 80 + 2 * (7 - row as i32);
                 }
                 for dir in 0..4 {
                     let new_r = row as i8 + DR[dir];
@@ -140,7 +140,16 @@ fn eval(state: &State) -> i32 {
                             score += 3;
                         }
                         else if state.get_color(new_r as usize, new_c as usize) == Some(false) && (state.is_crowned(new_r as usize, new_c as usize) == Some(true) || dir < 2) {
-                            score -= 5;
+                            let dest_r = new_r + DR[dir];
+                            let dest_c = new_c + DC[dir];
+                            if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 && state.get_board(dest_r as usize, dest_c as usize) == None {
+                                if state.color {
+                                    score += 7;
+                                }
+                                else {
+                                    score -= 7;
+                                }
+                            }
                         }
                     }
                     else {
@@ -150,10 +159,10 @@ fn eval(state: &State) -> i32 {
             }
             else if state.get_color(row, col) == Some(false) {
                 if state.is_crowned(row, col) == Some(true) {
-                    score -= 50;
+                    score -= 100;
                 }
                 else {
-                    score -= 30 + 2 * row as i32;
+                    score -= 80 + 2 * row as i32;
                 }
                 for dir in 0..4 {
                     let new_r = row as i8 + DR[dir];
@@ -163,7 +172,16 @@ fn eval(state: &State) -> i32 {
                             score -= 3;
                         }
                         else if state.get_color(new_r as usize, new_c as usize) == Some(false) && (state.is_crowned(new_r as usize, new_c as usize) == Some(true) || dir > 1) {
-                            score += 5;
+                            let dest_r = new_r + DR[dir];
+                            let dest_c = new_c + DC[dir];
+                            if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 && state.get_board(dest_r as usize, dest_c as usize) == None {
+                                if state.color {
+                                    score += 7;
+                                }
+                                else {
+                                    score -= 7;
+                                }
+                            }
                         }
                     }
                     else {
@@ -282,10 +300,10 @@ fn main() {
             panic!("Quit");
         }
         else if inp == '0' {
-            term = 2;
+            term = 3;
         }
         else if inp == '1' {
-            term = 4;
+            term = 5;
         }
         else if inp == '2' {
             term = 7;
@@ -294,6 +312,7 @@ fn main() {
             println!("Invalid input!");
             continue;
         }
+        println!("{}", term);
         println!("{state}");
         println!("_ : empty space");
         println!("b : uncrowned black checker");
