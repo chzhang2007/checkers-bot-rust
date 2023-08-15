@@ -7,7 +7,7 @@ const DR: [i8; 4] = [-1, -1, 1, 1];
 const DC: [i8; 4] = [-1, 1, -1, 1];
 const TERMNUM: i32 = 100000;
 
-fn dfs(state: &State, row: usize, col: usize) -> Vec<State> {
+fn dfs(state: &State, row: usize, col: usize, comp_col: bool) -> Vec<State> {
     let mut state = state.clone();
     let mut vec = vec![];
     let mut cont = false;
@@ -29,7 +29,7 @@ fn dfs(state: &State, row: usize, col: usize) -> Vec<State> {
                         state.toggle_crown(dest_r as usize, dest_c as usize);
                         crown = true;
                     }
-                    let subvec = dfs(&state, dest_r as usize, dest_c as usize);
+                    let subvec = dfs(&state, dest_r as usize, dest_c as usize, comp_col);
                     for val in subvec {
                         vec.push(val);
                     }
@@ -50,10 +50,10 @@ fn dfs(state: &State, row: usize, col: usize) -> Vec<State> {
     }
     return vec;
 }
-fn children(state: &State, row: usize, col: usize, dfs_only: bool) -> Vec<State> {
+fn children(state: &State, row: usize, col: usize, dfs_only: bool, comp_col: bool) -> Vec<State> {
     let mut state = state.clone();
     let mut states: Vec<State> = vec![];
-    let v: Vec<State> = dfs(&state, row, col);
+    let v: Vec<State> = dfs(&state, row, col, comp_col);
     for val in &v {
         if state.ne(val) {
             states.push(*val);
@@ -86,19 +86,19 @@ fn children(state: &State, row: usize, col: usize, dfs_only: bool) -> Vec<State>
     }
     return states;
 }
-fn terminal(state: &State) -> Option<bool> { //not terminal = None, black wins = Some(true), white wins = Some(false)
+fn terminal(state: &State, comp_col: bool) -> Option<bool> { //not terminal = None, black wins = Some(true), white wins = Some(false)
     let mut b: bool = false;
     let mut w: bool = false;
     for row in 0..8 {
         for col in 0..8 {
             if state.get_color(row, col) == Some(true) {
-                let vec = children(&state, row, col, false);
+                let vec = children(&state, row, col, false, comp_col);
                 if !vec.is_empty() {
                     b = true;
                 }
             }
             else if state.get_color(row, col) == Some(false) {
-                let vec = children(&state, row, col, false);
+                let vec = children(&state, row, col, false, comp_col);
                 if !vec.is_empty() {
                     w = true;
                 }
@@ -113,99 +113,99 @@ fn terminal(state: &State) -> Option<bool> { //not terminal = None, black wins =
     }
     return None;
 }
-fn eval(state: &State) -> i32 {
-    match terminal(state) {
-        Some(true) => return TERMNUM,
-        Some(false) => return -TERMNUM,
+fn eval(state: &State, comp_col: bool) -> f64 {
+    match terminal(state, comp_col) {
+        Some(true) => return TERMNUM as f64,
+        Some(false) => return -TERMNUM as f64,
         None => ()
     }
-    let mut score = 0;
+    let mut score = 0.0;
     for row in 0..8 {
         for col in 0..8 {
-            if state.get_color(row, col) == None {
-                continue;
-            }
+            let mut base = 0.0;
+            let mut mult = 1.0;
             if state.get_color(row, col) == Some(true) {
                 if state.is_crowned(row, col) == Some(true) {
-                    score += 100;
+                    base = 50.0;
                 }
                 else {
-                    score += 80 + 2 * (7 - row as i32);
+                    base = 30.0 + (7.0 - row as f64);
                 }
                 for dir in 0..4 {
                     let new_r = row as i8 + DR[dir];
                     let new_c = col as i8 + DC[dir];
                     if new_r >= 0 && new_r < 8 && new_c >= 0 && new_c < 8 {
                         if state.get_color(new_r as usize, new_c as usize) == Some(true) {
-                            score += 3;
+                            mult += 0.1;
                         }
                         else if state.get_color(new_r as usize, new_c as usize) == Some(false) && (state.is_crowned(new_r as usize, new_c as usize) == Some(true) || dir < 2) {
                             let dest_r = new_r + DR[dir];
                             let dest_c = new_c + DC[dir];
                             if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 && state.get_board(dest_r as usize, dest_c as usize) == None {
-                                if state.color {
-                                    score += 7;
+                                if state.player == comp_col {
+                                    mult += 0.3;
                                 }
                                 else {
-                                    score -= 7;
+                                    base = 0.0;
                                 }
                             }
                         }
                     }
                     else {
-                        score += 3;
+                        mult += 0.1;
                     }
                 }
             }
             else if state.get_color(row, col) == Some(false) {
                 if state.is_crowned(row, col) == Some(true) {
-                    score -= 100;
+                    base = -50.0;
                 }
                 else {
-                    score -= 80 + 2 * row as i32;
+                    base = -30.0 - row as f64;
                 }
                 for dir in 0..4 {
                     let new_r = row as i8 + DR[dir];
                     let new_c = col as i8 + DC[dir];
                     if new_r >= 0 && new_r < 8 && new_c >= 0 && new_c < 8 {
                         if state.get_color(new_r as usize, new_c as usize) == Some(true) {
-                            score -= 3;
+                            mult += 0.1;
                         }
                         else if state.get_color(new_r as usize, new_c as usize) == Some(false) && (state.is_crowned(new_r as usize, new_c as usize) == Some(true) || dir > 1) {
                             let dest_r = new_r + DR[dir];
                             let dest_c = new_c + DC[dir];
                             if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 && state.get_board(dest_r as usize, dest_c as usize) == None {
-                                if state.color {
-                                    score += 7;
+                                if state.player == comp_col {
+                                    base = 0.0;
                                 }
                                 else {
-                                    score -= 7;
+                                    mult += 0.3;
                                 }
                             }
                         }
                     }
                     else {
-                        score -= 3;
+                        mult += 0.1;
                     }
                 }
             }
+            score += base * mult;
         }
     }
     score
 }
-fn minimax(state: &State, depth: u8, same: bool, term: u8) -> (State, i32) { //max player = black, min player = white
+fn minimax(state: &State, depth: u8, term: u8, comp_col: bool) -> (State, f64) { //max player = black, min player = white
     let state: State = state.clone();
     let mut new_state = state;
-    if depth == term || terminal(&state) != None {
-        return (state, eval(&state));
+    if depth == term || terminal(&state, comp_col) != None {
+        return (state, eval(&state, comp_col));
     }
     let mut jump = false;
     for row in 0..8 {
         for col in 0..8 {
-            if state.get_color(row, col) != Some(state.color) {
+            if state.get_color(row, col) != Some(state.player == comp_col) {
                 continue;
             }
-            let vec = children(&state, row, col, true);
+            let vec = children(&state, row, col, true, comp_col);
             if !vec.is_empty() {
                 jump = true;
                 break;
@@ -215,25 +215,19 @@ fn minimax(state: &State, depth: u8, same: bool, term: u8) -> (State, i32) { //m
             break;
         }
     }
-    if state.color == true { //max player
-        let mut val = -2 * TERMNUM;
+    if state.player == comp_col { //max player
+        let mut val = -2.0 * TERMNUM as f64;
         for row in 0..8 {
             for col in 0..8 {
                 if state.get_color(row, col) == Some(true) {
-                    let vec = children(&state, row, col, jump);
+                    let vec = children(&state, row, col, jump, comp_col);
                     for i in &vec {
                         if state.eq(i) {
                             continue;
                         }
                         let mut temp = *i;
                         temp.player = !state.player;
-                        if same {
-                            temp.color = i.player;
-                        }
-                        else {
-                            temp.color = !i.player;
-                        }
-                        let tup = minimax(&temp, depth + 1, same, term);
+                        let tup = minimax(&temp, depth + 1, term, comp_col);
                         if tup.1 > val {
                             new_state = temp;
                             val = tup.1;
@@ -245,24 +239,18 @@ fn minimax(state: &State, depth: u8, same: bool, term: u8) -> (State, i32) { //m
         return (new_state, val);
     }
     else { //min player
-        let mut val = 2 * TERMNUM;
+        let mut val = 2.0 * TERMNUM as f64;
         for row in 0..8 {
             for col in 0..8 {
                 if state.get_color(row, col) == Some(false) {
-                    let vec = children(&state, row, col, jump);
+                    let vec = children(&state, row, col, jump, comp_col);
                     for i in &vec {
                         if state.eq(i) {
                             continue;
                         }
                         let mut temp = *i;
                         temp.player = !state.player;
-                        if same {
-                            temp.color = i.player;
-                        }
-                        else {
-                            temp.color = !i.player;
-                        }
-                        let tup = minimax(&temp, depth + 1, same, term);
+                        let tup = minimax(&temp, depth + 1, term, comp_col);
                         if tup.1 < val {
                             new_state = temp;
                             val = tup.1;
@@ -286,7 +274,7 @@ fn main() {
     }
     loop {
         let mut state = State::new();
-        let mut same = false;
+        let comp_col;
         println!("Please enter your desired difficulty: 0 (easiest) to 2 (hardest). Higher difficulty bots will take longer to make moves.");
         let mut inp = String::new();
         io::stdin().read_line(&mut inp).expect("Failed to read input.");
@@ -312,7 +300,6 @@ fn main() {
             println!("Invalid input!");
             continue;
         }
-        println!("{}", term);
         println!("{state}");
         println!("_ : empty space");
         println!("b : uncrowned black checker");
@@ -324,21 +311,22 @@ fn main() {
         if rnum == 1 {
             println!("You are playing black.");
             state.player = false;
+            comp_col = false;
         }
         else {
             println!("You are playing white.");
+            comp_col = true;
         }
         println!();
-        if state.color == state.player {
-            same = true;
-        }
         loop {
-            let end = terminal(&state);
+            let end = terminal(&state, comp_col);
             if end == Some(true) {
+                println!("{state}");
                 println!("Black won!");
                 break;
             }
             else if end == Some(false) {
+                println!("{state}");
                 println!("White won!");
                 break;
             }
@@ -346,12 +334,12 @@ fn main() {
             let mut jump = false;
             for r in 0..8 {
                 for c in 0..8 {
-                    if state.get_color(r, c) == Some(state.color) {
-                        let vec = children(&state, r, c, false);
+                    if state.get_color(r, c) == Some(state.player == comp_col) {
+                        let vec = children(&state, r, c, false, comp_col);
                         if !vec.is_empty() {
                             moves = true;
                         }
-                        let vec = children(&state, r, c, true);
+                        let vec = children(&state, r, c, true, comp_col);
                         if !vec.is_empty() {
                             jump = true;
                             break;
@@ -362,7 +350,7 @@ fn main() {
                     break;
                 }
             }
-            if !moves && state.color == true {
+            if !moves && state.player == comp_col {
                 println!("White won!");
                 break;
             }
@@ -373,15 +361,9 @@ fn main() {
                 if term == 7 {
                     println!("Please wait for the computer to make its move...");
                 }
-                let tup = minimax(&state, 0, same, term);
+                let tup = minimax(&state, 0, term, comp_col);
                 state = tup.0;
                 state.player = false;
-                if same {
-                    state.color = state.player;
-                }
-                else {
-                    state.color = !state.player;
-                }
                 println!("The computer has made its move.");
                 println!();
             }
@@ -419,11 +401,11 @@ fn main() {
                         continue;
                     }
                     let col: u8 = col as u8 - '0' as u8;
-                    if state.get_color(row as usize, col as usize) != Some(state.color) {
+                    if state.get_color(row as usize, col as usize) != Some(state.player == comp_col) {
                         println!("The selected space does not contain one of your pieces. Please select a different space.");
                         continue;
                     }
-                    let vec = children(&state, row as usize, col as usize, false);
+                    let vec = children(&state, row as usize, col as usize, false, comp_col);
                     if vec.is_empty() {
                         println!("The selected space does not have any legal moves. Please select a different space.");
                         continue;
@@ -462,7 +444,6 @@ fn main() {
                             }
                             state.set_board(new_r as usize, new_c as usize, state.get_board(row as usize, col as usize));
                             state.set_board(row as usize, col as usize, None);
-                            state.color = false;
                             state.player = true;
                             if new_r == 0 && state.is_crowned(new_r as usize, new_c as usize) == Some(false) {
                                 state.toggle_crown(new_r as usize, new_c as usize);
@@ -478,7 +459,6 @@ fn main() {
                                 state.set_board(dest_r as usize, dest_c as usize, state.get_board(row as usize, col as usize));
                                 state.set_board(new_r as usize, new_c as usize, None);
                                 state.set_board(row as usize, col as usize, None);
-                                state.color = false;
                                 state.player = true;
                                 if dest_r == 0 && state.is_crowned(dest_r as usize, dest_c as usize) == Some(false) {
                                     state.toggle_crown(dest_r as usize, dest_c as usize);
@@ -486,7 +466,7 @@ fn main() {
                                 let row = dest_r;
                                 let col = dest_c;
                                 loop {
-                                    let vec = children(&state, row as usize, col as usize, true);
+                                    let vec = children(&state, row as usize, col as usize, true, comp_col);
                                     if vec.is_empty() {
                                         break;
                                     }
@@ -521,7 +501,6 @@ fn main() {
                                                 state.set_board(dest_r as usize, dest_c as usize, state.get_board(row as usize, col as usize));
                                                 state.set_board(new_r as usize, new_c as usize, None);
                                                 state.set_board(row as usize, col as usize, None);
-                                                state.color = false;
                                                 state.player = true;
                                                 if dest_r == 0 && state.is_crowned(dest_r as usize, dest_c as usize) == Some(false) {
                                                     state.toggle_crown(dest_r as usize, dest_c as usize);
@@ -551,7 +530,6 @@ fn main() {
                             }
                             state.set_board(new_r as usize, new_c as usize, state.get_board(row as usize, col as usize));
                             state.set_board(row as usize, col as usize, None);
-                            state.color = true;
                             state.player = true;
                             if new_r == 7 && state.is_crowned(new_r as usize, new_c as usize) == Some(false) {
                                 state.toggle_crown(new_r as usize, new_c as usize);
@@ -567,7 +545,6 @@ fn main() {
                                 state.set_board(dest_r as usize, dest_c as usize, state.get_board(row as usize, col as usize));
                                 state.set_board(new_r as usize, new_c as usize, None);
                                 state.set_board(row as usize, col as usize, None);
-                                state.color = true;
                                 state.player = true;
                                 if dest_r == 7 && state.is_crowned(dest_r as usize, dest_c as usize) == Some(false) {
                                     state.toggle_crown(dest_r as usize, dest_c as usize);
@@ -575,7 +552,7 @@ fn main() {
                                 let row = dest_r;
                                 let col = dest_c;
                                 loop {
-                                    let vec = children(&state, row as usize, col as usize, true);
+                                    let vec = children(&state, row as usize, col as usize, true, comp_col);
                                     if vec.is_empty() {
                                         break;
                                     }

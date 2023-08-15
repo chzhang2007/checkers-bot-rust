@@ -23,7 +23,7 @@ impl From<Piece> for char {
 #[derive(Clone, Copy, Eq)]
 pub struct State {
     pub board: [[Option<Piece>; 8]; 8],
-    pub color: bool, //black = true, white = false
+    //pub color: bool, //black = true, white = false
     pub player: bool, //computer = true, user = false
 }
 impl State {
@@ -156,7 +156,7 @@ impl Default for State {
             }
         }
         State { board: brd,
-                color: true,
+                //color: true,
                 player: true }
     }
 }
