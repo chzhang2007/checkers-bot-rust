@@ -114,49 +114,49 @@ fn terminal(state: &State, comp_col: bool) -> Option<bool> { //not terminal = No
     return None;
 }
 fn eval(state: &State, comp_col: bool) -> f64 {
-    match terminal(state, comp_col) {
+    match terminal(state, comp_col) { //if state is terminal, return corresponding large number
         Some(true) => return TERMNUM as f64,
         Some(false) => return -TERMNUM as f64,
         None => ()
     }
     let mut score = 0.0;
     for row in 0..8 {
-        for col in 0..8 {
+        for col in 0..8 { //score detemrined by multiplying 'base' and 'mult'
             let mut base = 0.0;
             let mut mult = 1.0;
             if state.get_color(row, col) == Some(true) {
-                if state.is_crowned(row, col) == Some(true) {
+                if state.is_crowned(row, col) == Some(true) { //set a higher base for a crowned checker
                     base = 50.0;
                 }
-                else {
+                else { //set a lower base for an uncrowned checker but increase the base as the checker gets closer to being crowned
                     base = 30.0 + (7.0 - row as f64);
                 }
-                for dir in 0..4 {
+                for dir in 0..4 { //check adjacent spaces to determine how protected the checker is
                     let new_r = row as i8 + DR[dir];
                     let new_c = col as i8 + DC[dir];
                     if new_r >= 0 && new_r < 8 && new_c >= 0 && new_c < 8 {
-                        if state.get_color(new_r as usize, new_c as usize) == Some(true) {
+                        if state.get_color(new_r as usize, new_c as usize) == Some(true) { //checker is protected by piece of the same color
                             mult += 0.1;
                         }
-                        else if state.get_color(new_r as usize, new_c as usize) == Some(false) && (state.is_crowned(new_r as usize, new_c as usize) == Some(true) || dir < 2) {
+                        else if state.get_color(new_r as usize, new_c as usize) == Some(false) && (state.is_crowned(new_r as usize, new_c as usize) == Some(true) || dir < 2) { //checker is adjacent to a piece of the opposite color
                             let dest_r = new_r + DR[dir];
                             let dest_c = new_c + DC[dir];
                             if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 && state.get_board(dest_r as usize, dest_c as usize) == None {
-                                if state.player == comp_col {
+                                if state.player == comp_col { //max player has the opportunity to take from the min player
                                     mult += 0.3;
                                 }
-                                else {
+                                else { //min player has the opportunity to take from the max player
                                     base = 0.0;
                                 }
                             }
                         }
                     }
-                    else {
+                    else { //checker is protected by an edge of the board
                         mult += 0.1;
                     }
                 }
             }
-            else if state.get_color(row, col) == Some(false) {
+            else if state.get_color(row, col) == Some(false) { //same logic for the min player
                 if state.is_crowned(row, col) == Some(true) {
                     base = -50.0;
                 }
@@ -193,13 +193,13 @@ fn eval(state: &State, comp_col: bool) -> f64 {
     }
     score
 }
-fn minimax(state: &State, depth: u8, term: u8, comp_col: bool) -> (State, f64) { //max player = black, min player = white
+fn minimax(state: &State, depth: u8, term: u8, comp_col: bool) -> (State, f64) { //max player = black, min player = white (positive score = advantage for black, negative score = advantage for white)
     let state: State = state.clone();
     let mut new_state = state;
     if depth == term || terminal(&state, comp_col) != None {
         return (state, eval(&state, comp_col));
     }
-    let mut jump = false;
+    let mut jump = false; //determines whether player is legally allowed to move without jumping a checker
     for row in 0..8 {
         for col in 0..8 {
             if state.get_color(row, col) != Some(state.player == comp_col) {
@@ -274,7 +274,7 @@ fn main() {
     }
     loop {
         let mut state = State::new();
-        let comp_col;
+        let comp_col; //color the computer is playing as; used to determine which color a state is in
         println!("Please enter your desired difficulty: 0 (easiest) to 2 (hardest). Higher difficulty bots will take longer to make moves.");
         let mut inp = String::new();
         io::stdin().read_line(&mut inp).expect("Failed to read input.");
@@ -283,7 +283,7 @@ fn main() {
             continue;
         }
         let inp: char = inp.trim().chars().next().unwrap();
-        let term: u8;
+        let term: u8; //search depth of the minimax function
         if inp == 'q' {
             panic!("Quit");
         }
@@ -319,7 +319,7 @@ fn main() {
         }
         println!();
         loop {
-            let end = terminal(&state, comp_col);
+            let end = terminal(&state, comp_col); //checks if the game is over
             if end == Some(true) {
                 println!("{state}");
                 println!("Black won!");
@@ -330,8 +330,8 @@ fn main() {
                 println!("White won!");
                 break;
             }
-            let mut moves = false;
-            let mut jump = false;
+            let mut moves = false; //checks if there are any legal moves for the current player
+            let mut jump = false; //checks if player legally must jump a checker
             for r in 0..8 {
                 for c in 0..8 {
                     if state.get_color(r, c) == Some(state.player == comp_col) {
@@ -357,7 +357,7 @@ fn main() {
             else if !moves {
                 println!("Black won!");
             }
-            if state.player {
+            if state.player { //computer's turn
                 if term == 7 {
                     println!("Please wait for the computer to make its move...");
                 }
@@ -367,9 +367,9 @@ fn main() {
                 println!("The computer has made its move.");
                 println!();
             }
-            else {
+            else { //player's turn
                 loop {
-                    println!("Enter the row number of the piece you would like to move: (0-7)");
+                    println!("Enter the row number of the piece you would like to move: (0-7)"); //reading player's (legal) move
                     let mut row = String::new();
                     io::stdin().read_line(&mut row).expect("Failed to read input.");
                     if row.trim().len() != 1 {
@@ -437,7 +437,7 @@ fn main() {
                         continue;
                     }
                     if state.get_color(row as usize, col as usize) == Some(true) {
-                        if state.get_board(new_r as usize, new_c as usize) == None {
+                        if state.get_board(new_r as usize, new_c as usize) == None { //handles moves that don't jump a checker
                             if jump {
                                 println!("You have the opportunity to jump a checker, so you must do so. Please select a different move.");
                                 continue;
@@ -450,7 +450,7 @@ fn main() {
                             }
                             break;
                         }
-                        let dest_r = row as i8 + 2 * DR[dir as usize];
+                        let dest_r = row as i8 + 2 * DR[dir as usize]; //handles first checker jump
                         let dest_c = col as i8 + 2 * DC[dir as usize];
                         if dest_r >= 0 && dest_r < 8 && dest_c >= 0 && dest_c < 8 {
                             let dest_r = dest_r as u8;
@@ -465,7 +465,7 @@ fn main() {
                                 }
                                 let row = dest_r;
                                 let col = dest_c;
-                                loop {
+                                loop { //handles all subsequent (legal) checker jumps, terminates when there are no more jumps
                                     let vec = children(&state, row as usize, col as usize, true, comp_col);
                                     if vec.is_empty() {
                                         break;
@@ -522,7 +522,7 @@ fn main() {
                             println!("This piece has no legal moves in this direction. Please select a different move.");
                         }
                     }
-                    else {
+                    else { //same logic for white
                         if state.get_board(new_r as usize, new_c as usize) == None {
                             if jump {
                                 println!("You have the opportunity to jump a checker, so you must do so. Please select a different move.");
@@ -611,7 +611,7 @@ fn main() {
             }
             println!("{state}");
         }
-        println!("Enter 0 to play again, or enter anything else to quit.");
+        println!("Enter 0 to play again, or enter anything else to quit."); //restarts the game
         let mut inp = String::new();
         io::stdin().read_line(&mut inp).expect("Failed to read input.");
         if inp.trim().len() != 1 || inp.trim().chars().next().unwrap() != '0' {
